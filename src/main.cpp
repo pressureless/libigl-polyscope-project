@@ -1,5 +1,8 @@
-#include "polyscope/polyscope.h"
+// SIMPLICIAL COMPLEX
 
+#include "geometrycentral/surface/manifold_surface_mesh.h"
+#include "geometrycentral/surface/meshio.h"
+#include "geometrycentral/surface/vertex_position_geometry.h"
 #include <igl/PI.h>
 #include <igl/avg_edge_length.h>
 #include <igl/barycenter.h>
@@ -11,164 +14,216 @@
 #include <igl/massmatrix.h>
 #include <igl/per_vertex_normals.h>
 #include <igl/readOBJ.h>
-
-#include "polyscope/messages.h"
-#include "polyscope/point_cloud.h"
+#include "polyscope/polyscope.h"
 #include "polyscope/surface_mesh.h"
 
-#include <iostream>
-#include <unordered_set>
-#include <utility>
-
 #include "args/args.hxx"
-#include "json/json.hpp"
+#include "imgui.h"
 
-// The mesh, Eigen representation
+#include "DECOperators.h"
+
+using namespace geometrycentral;
+using namespace geometrycentral::surface;
 Eigen::MatrixXd meshV;
 Eigen::MatrixXi meshF;
+// == Geometry-central data
+std::unique_ptr<ManifoldSurfaceMesh> mesh_uptr;
+std::unique_ptr<VertexPositionGeometry> geometry_uptr;
+// so we can more easily pass these to different classes while preserving syntax
+ManifoldSurfaceMesh* mesh;
+VertexPositionGeometry* geometry;
 
-// Options for algorithms
-int iVertexSource = 7;
+// Polyscope visualization handle, to quickly add data to the surface
+polyscope::SurfaceMesh* psMesh;
+std::string MESHNAME;
 
-void addCurvatureScalar() {
-  using namespace Eigen;
-  using namespace std;
+// Some global variables
+DECOperators SCO;
+bool isComplexResult = false;
+int isPureComplexResult = -1;
+double vertexRadius;
+double edgeRadius;
 
-  VectorXd K;
-  igl::gaussian_curvature(meshV, meshF, K);
-  SparseMatrix<double> M, Minv;
-  igl::massmatrix(meshV, meshF, igl::MASSMATRIX_TYPE_DEFAULT, M);
-  igl::invert_diag(M, Minv);
-  K = (Minv * K).eval();
 
-  polyscope::getSurfaceMesh("input mesh")
-      ->addVertexScalarQuantity("gaussian curvature", K,
-                                polyscope::DataType::SYMMETRIC);
+std::array<double, 3> BLUE = {0.11, 0.388, 0.89};
+glm::vec<3, float> ORANGE_VEC = {1, 0.65, 0};
+std::array<double, 3> ORANGE = {1, 0.65, 0};
+
+
+void flipZ() {
+    // Rotate mesh 180 deg about up-axis on startup
+    glm::mat4x4 rot = glm::rotate(glm::mat4x4(1.0f), static_cast<float>(PI), glm::vec3(0, 1, 0));
+    for (Vertex v : mesh->vertices()) {
+        Vector3 vec = geometry->inputVertexPositions[v];
+        glm::vec4 rvec = {vec[0], vec[1], vec[2], 1.0};
+        rvec = rot * rvec;
+        geometry->inputVertexPositions[v] = {rvec[0], rvec[1], rvec[2]};
+    }
+    psMesh->updateVertexPositions(geometry->inputVertexPositions);
 }
 
-void computeDistanceFrom() {
-  Eigen::VectorXi VS, FS, VT, FT;
-  // The selected vertex is the source
-  VS.resize(1);
-  VS << iVertexSource;
-  // All vertices are the targets
-  VT.setLinSpaced(meshV.rows(), 0, meshV.rows() - 1);
-  Eigen::VectorXd d;
-  igl::exact_geodesic(meshV, meshF, VS, FS, VT, FT, d);
+/*
+ * Display the selected simplices.
+ * TODO: Use SurfaceVertexCountQuantity* SurfaceMesh::addVertexCountQuantity, etc. instead of SurfaceGraphQuantity for
+ * cleaner code
+ */
+void showSelected() {
 
-  polyscope::getSurfaceMesh("input mesh")
-      ->addVertexDistanceQuantity(
-          "distance from vertex " + std::to_string(iVertexSource), d);
+    // Show selected vertices.
+    std::vector<Vector3> vertPos;
+    std::vector<std::array<size_t, 2>> vertInd;
+    for (std::set<size_t>::iterator it = polyscope::state::subset.vertices.begin();
+         it != polyscope::state::subset.vertices.end(); ++it) {
+        vertPos.push_back(geometry->inputVertexPositions[*it]);
+    }
+    polyscope::SurfaceGraphQuantity* showVerts = psMesh->addSurfaceGraphQuantity("selected vertices", vertPos, vertInd);
+    showVerts->setEnabled(true);
+    showVerts->setRadius(vertexRadius);
+    showVerts->setColor(ORANGE_VEC);
+
+    // Show selected edges.
+    std::vector<Vector3> edgePos;
+    std::vector<std::array<size_t, 2>> edgeInd;
+    for (std::set<size_t>::iterator it = polyscope::state::subset.edges.begin();
+         it != polyscope::state::subset.edges.end(); ++it) {
+        Edge e = mesh->edge(*it);
+        edgePos.push_back(geometry->inputVertexPositions[e.firstVertex()]);
+        edgePos.push_back(geometry->inputVertexPositions[e.secondVertex()]);
+        size_t i = edgeInd.size();
+        edgeInd.push_back({2 * i, 2 * i + 1});
+    }
+    polyscope::SurfaceGraphQuantity* showEdges = psMesh->addSurfaceGraphQuantity("selected edges", edgePos, edgeInd);
+    showEdges->setEnabled(true);
+    showEdges->setRadius(edgeRadius);
+    showEdges->setColor(ORANGE_VEC);
+
+    // Show selected faces.
+    std::vector<std::array<double, 3>> faceColors(mesh->nFaces());
+    for (size_t i = 0; i < mesh->nFaces(); i++) {
+        faceColors[i] = BLUE;
+    }
+    for (std::set<size_t>::iterator it = polyscope::state::subset.faces.begin();
+         it != polyscope::state::subset.faces.end(); ++it) {
+        faceColors[*it] = ORANGE;
+    }
+    polyscope::SurfaceFaceColorQuantity* showFaces = psMesh->addFaceColorQuantity("selected faces", faceColors);
+    showFaces->setEnabled(true);
 }
 
-void computeParameterization() {
-  using namespace Eigen;
-  using namespace std;
-
-  // Fix two points on the boundary
-  VectorXi bnd, b(2, 1);
-  igl::boundary_loop(meshF, bnd);
-
-  if (bnd.size() == 0) {
-    polyscope::warning("mesh has no boundary, cannot parameterize");
-    return;
-  }
-
-  b(0) = bnd(0);
-  b(1) = bnd(round(bnd.size() / 2));
-  MatrixXd bc(2, 2);
-  bc << 0, 0, 1, 0;
-
-  // LSCM parametrization
-  Eigen::MatrixXd V_uv;
-  igl::lscm(meshV, meshF, b, bc, V_uv);
-
-  polyscope::getSurfaceMesh("input mesh")
-      ->addVertexParameterizationQuantity("LSCM parameterization", V_uv);
+void redraw() {
+    showSelected();
+    polyscope::requestRedraw();
 }
 
-void computeNormals() {
-  Eigen::MatrixXd N_vertices;
-  igl::per_vertex_normals(meshV, meshF, N_vertices);
+/*
+ * Buttons for the simplicial operators.
+ */
+void functionCallback() {
 
-  polyscope::getSurfaceMesh("input mesh")
-      ->addVertexVectorQuantity("libIGL vertex normals", N_vertices);
+    if (ImGui::Button("Reset")) {
+        polyscope::state::subset.vertices.clear();
+        polyscope::state::subset.edges.clear();
+        polyscope::state::subset.faces.clear();
+        redraw();
+    }
+
+    if (ImGui::Button("isComplex")) {
+        isComplexResult = SCO.isComplex(polyscope::state::subset);
+    }
+    ImGui::SameLine(100);
+    ImGui::Text(isComplexResult ? "true" : "false");
+
+    if (ImGui::Button("isPureComplex")) {
+        isPureComplexResult = SCO.isPureComplex(polyscope::state::subset);
+    }
+    ImGui::SameLine(130);
+    ImGui::Text("%d", isPureComplexResult);
+
+    if (ImGui::Button("Boundary")) {
+        SimplexSubset S = SCO.boundary(polyscope::state::subset);
+        polyscope::state::subset = S;
+        redraw();
+    }
+
+    if (ImGui::Button("Star")) {
+        SimplexSubset S = SCO.star(polyscope::state::subset);
+        polyscope::state::subset = S;
+        redraw();
+    }
+
+    if (ImGui::Button("Closure")) {
+        SimplexSubset S = SCO.closure(polyscope::state::subset);
+        polyscope::state::subset = S;
+        redraw();
+    }
+
+    if (ImGui::Button("Link")) {
+        SimplexSubset S = SCO.link(polyscope::state::subset);
+        polyscope::state::subset = S;
+        redraw();
+    }
 }
 
-void callback() {
 
-  static int numPoints = 2000;
-  static float param = 3.14;
+int main(int argc, char** argv) {
+    // Configure the argument parser
+    args::ArgumentParser parser("15-458 HW0");
+    args::Positional<std::string> inputFilename(parser, "mesh", "A mesh file.");
 
-  ImGui::PushItemWidth(100);
+    // Parse args
+    try {
+        parser.ParseCLI(argc, argv);
+    } catch (args::Help&) {
+        std::cout << parser;
+        return 0;
+    } catch (args::ParseError& e) {
+        std::cerr << e.what() << std::endl;
+        std::cerr << parser;
+        return 1;
+    }
 
-  // Curvature
-  if (ImGui::Button("add curvature")) {
-    addCurvatureScalar();
-  }
-  
-  // Normals 
-  if (ImGui::Button("add normals")) {
-    computeNormals();
-  }
+    // If a mesh name was not given, use default mesh.
+    std::string filepath = "../../../input/small_disk.obj";
+    if (inputFilename) {
+        filepath = args::get(inputFilename);
+    }
 
-  // Param
-  if (ImGui::Button("add parameterization")) {
-    computeParameterization();
-  }
+    MESHNAME = polyscope::guessNiceNameFromPath(filepath);
+    igl::readOBJ(filepath, meshV, meshF);
+    std::cout<<"meshV:\n"<<meshV<<std::endl;
+    std::cout<<"meshF:\n"<<meshF<<std::endl;
 
-  // Geodesics
-  if (ImGui::Button("compute distance")) {
-    computeDistanceFrom();
-  }
-  ImGui::SameLine();
-  ImGui::InputInt("source vertex", &iVertexSource);
+    // Load mesh
+    // std::tie(mesh_uptr, geometry_uptr) = readManifoldSurfaceMesh(filepath);
+    // mesh = mesh_uptr.release();
+    // geometry = geometry_uptr.release();
 
-  ImGui::PopItemWidth();
-}
+    // Get indices for element picking
+    // polyscope::state::facePickIndStart = mesh->nVertices();
+    // polyscope::state::edgePickIndStart = polyscope::state::facePickIndStart + mesh->nFaces();
+    // polyscope::state::halfedgePickIndStart = polyscope::state::edgePickIndStart + mesh->nEdges();
 
-int main(int argc, char **argv) {
-  // Configure the argument parser
-  args::ArgumentParser parser("A simple demo of Polyscope with libIGL.\nBy "
-                              "Nick Sharp (nsharp@cs.cmu.edu)",
-                              "");
-  args::Positional<std::string> inFile(parser, "mesh", "input mesh");
+    // Initialize polyscope
+    polyscope::init();
 
-  // Parse args
-  try {
-    parser.ParseCLI(argc, argv);
-  } catch (args::Help) {
-    std::cout << parser;
-    return 0;
-  } catch (args::ParseError e) {
-    std::cerr << e.what() << std::endl;
+    // Set the callback function
+    polyscope::state::userCallback = functionCallback;
 
-    std::cerr << parser;
-    return 1;
-  }
+    // Add mesh to GUI
+    psMesh = polyscope::registerSurfaceMesh(MESHNAME, meshV, meshF);
 
-  // Options
-  polyscope::options::autocenterStructures = true;
-  polyscope::view::windowWidth = 1024;
-  polyscope::view::windowHeight = 1024;
+    // Mesh initialization
+    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> aa = meshF.cast<size_t>();
+    SCO.initialize(aa);
 
-  // Initialize polyscope
-  polyscope::init();
+    // Add visualization options.
+    // flipZ();
+    // double lengthScale = geometry->meanEdgeLength();
+    // vertexRadius = lengthScale * 0.1;
+    // edgeRadius = lengthScale * 0.05;
 
-  std::string filename = args::get(inFile);
-  std::cout << "loading: " << filename << std::endl;
+    // Give control to the polyscope gui
+    polyscope::show();
 
-  // Read the mesh
-  igl::readOBJ(filename, meshV, meshF);
-
-  // Register the mesh with Polyscope
-  polyscope::registerSurfaceMesh("input mesh", meshV, meshF);
-
-  // Add the callback
-  polyscope::state::userCallback = callback;
-
-  // Show the gui
-  polyscope::show();
-
-  return 0;
+    return EXIT_SUCCESS;
 }

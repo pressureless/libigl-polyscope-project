@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.19.0)
 
 project("libIGL polyscope example project")
 
@@ -7,6 +7,7 @@ if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
     message(FATAL_ERROR "Source and build directories cannot be the same. Go use the /build directory.")
 endif()
 
+set(CMAKE_BUILD_TYPE "Debug")
 ### Configure output locations
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -78,14 +79,22 @@ add_subdirectory("deps/polyscope")
 #set(LIBIGL_WITH_OPENGL_GLFW_IMGUI OFF CACHE BOOL "Use ImGui" )
 #add_subdirectory("deps/libIGL")
 
+add_subdirectory(deps/geometry-central)
+
 # Create an executable
-add_executable(
-        libIGL-polyscope-example
-        src/main.cpp
-        )
+set(SRCS 
+  src/main.cpp
+  src/DECOperators.cpp
+)
+
+add_executable(main "${SRCS}")
 
 # Include settings
-target_include_directories(libIGL-polyscope-example PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/deps/libigl/include")
+target_include_directories(main PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/deps/libigl/include")
+target_include_directories(main PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
+target_include_directories(main PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/deps/polyscope/deps/args")
+
 
 # Link settings
-target_link_libraries(libIGL-polyscope-example polyscope Eigen3::Eigen)
+target_link_libraries(main polyscope Eigen3::Eigen)
+target_link_libraries(main geometry-central)
