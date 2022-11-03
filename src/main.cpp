@@ -1,8 +1,8 @@
 // SIMPLICIAL COMPLEX
 
-#include "geometrycentral/surface/manifold_surface_mesh.h"
-#include "geometrycentral/surface/meshio.h"
-#include "geometrycentral/surface/vertex_position_geometry.h"
+// #include "geometrycentral/surface/manifold_surface_mesh.h"
+// #include "geometrycentral/surface/meshio.h"
+// #include "geometrycentral/surface/vertex_position_geometry.h"
 #include <igl/PI.h>
 #include <igl/avg_edge_length.h>
 #include <igl/barycenter.h>
@@ -22,17 +22,18 @@
 
 #include "dec_util.h"
 #include "DECOperators.h"
+#include <algorithm>
 
-using namespace geometrycentral;
-using namespace geometrycentral::surface;
+// using namespace geometrycentral;
+// using namespace geometrycentral::surface;
 Eigen::MatrixXd meshV;
 Eigen::MatrixXi meshF;
 // == Geometry-central data
-std::unique_ptr<ManifoldSurfaceMesh> mesh_uptr;
-std::unique_ptr<VertexPositionGeometry> geometry_uptr;
+// std::unique_ptr<ManifoldSurfaceMesh> mesh_uptr;
+// std::unique_ptr<VertexPositionGeometry> geometry_uptr;
 // so we can more easily pass these to different classes while preserving syntax
-ManifoldSurfaceMesh* mesh;
-VertexPositionGeometry* geometry;
+// ManifoldSurfaceMesh* mesh;
+// VertexPositionGeometry* geometry;
 
 // Polyscope visualization handle, to quickly add data to the surface
 polyscope::SurfaceMesh* psMesh;
@@ -53,7 +54,7 @@ std::array<double, 3> ORANGE = {1, 0.65, 0};
 
 void flipZ() {
     // Rotate mesh 180 deg about up-axis on startup
-    glm::mat4x4 rot = glm::rotate(glm::mat4x4(1.0f), static_cast<float>(PI), glm::vec3(0, 1, 0));
+    glm::mat4x4 rot = glm::rotate(glm::mat4x4(1.0f), static_cast<float>(igl::PI), glm::vec3(0, 1, 0));
     for (int v=0; v < SCO.nVertices(); v++) {
         auto vec = meshV.row(v);
         glm::vec4 rvec = {vec[0], vec[1], vec[2], 1.0};
@@ -71,51 +72,60 @@ void flipZ() {
  * cleaner code
  */
 void showSelected() {
+    
+    print_vec(psMesh->edgePerm);
+    // Show selected vertices. 
+    Eigen::MatrixXd vertPos(polyscope::state::subset.vertices.size(), 3);
+    std::vector<std::array<size_t, 2>> vertInd;
+    int idx = 0;
+    for (std::set<size_t>::iterator it = polyscope::state::subset.vertices.begin();
+        it != polyscope::state::subset.vertices.end(); ++it) {
+        int cur = *it;
+        vertPos.row(idx) = meshV.row(cur);
+        idx++; 
+    }
+    polyscope::SurfaceGraphQuantity* showVerts = psMesh->addSurfaceGraphQuantity("selected vertices", vertPos, vertInd);
+    showVerts->setEnabled(true);
+    showVerts->setRadius(vertexRadius);
+    showVerts->setColor(ORANGE_VEC);
 
-//     // Show selected vertices.
-//     std::vector<Vector3> vertPos;
-//     std::vector<std::array<size_t, 2>> vertInd;
-//     for (std::set<size_t>::iterator it = polyscope::state::subset.vertices.begin();
-//         it != polyscope::state::subset.vertices.end(); ++it) {
-//         int cur = *it;
-//         vertPos.push_back(meshV.row(cur));
-//     }
-//     polyscope::SurfaceGraphQuantity* showVerts = psMesh->addSurfaceGraphQuantity("selected vertices", vertPos, vertInd);
-//     showVerts->setEnabled(true);
-//     showVerts->setRadius(vertexRadius);
-//     showVerts->setColor(ORANGE_VEC);
-
-//     // Show selected edges.
-//     std::vector<Vector3> edgePos;
-//     std::vector<std::array<size_t, 2>> edgeInd;
-//     for (std::set<size_t>::iterator it = polyscope::state::subset.edges.begin();
-//          it != polyscope::state::subset.edges.end(); ++it) {
-//         Edge e = mesh->edge(*it);
-//         edgePos.push_back(meshV.row(e.firstVertex()));
-//         edgePos.push_back(meshV.row(e.secondVertex()));
-//         size_t i = edgeInd.size();
-//         edgeInd.push_back({2 * i, 2 * i + 1});
-//     }
-//     polyscope::SurfaceGraphQuantity* showEdges = psMesh->addSurfaceGraphQuantity("selected edges", edgePos, edgeInd);
-//     showEdges->setEnabled(true);
-//     showEdges->setRadius(edgeRadius);
-//     showEdges->setColor(ORANGE_VEC);
+    // Show selected edges.
+    // std::vector<Vector3> edgePos;
+    idx = 0;
+    Eigen::MatrixXd edgePos(polyscope::state::subset.edges.size()*2, 3);
+    std::vector<std::array<size_t, 2>> edgeInd;
+    for (std::set<size_t>::iterator it = polyscope::state::subset.edges.begin();
+         it != polyscope::state::subset.edges.end(); ++it) {
+        int cur = *it;
+        int fir = SCO.E(cur, 0);
+        int sec = SCO.E(cur, 1); 
+        std::cout<<"fir:"<<fir<<", sec:"<<sec<<std::endl;
+        edgePos.row(idx) = meshV.row(fir); 
+        edgePos.row(idx+1) = meshV.row(sec);  
+        size_t i = idx;
+        edgeInd.push_back({i, i + 1});
+        idx += 2; 
+    }
+    polyscope::SurfaceGraphQuantity* showEdges = psMesh->addSurfaceGraphQuantity("selected edges", edgePos, edgeInd);
+    showEdges->setEnabled(true);
+    showEdges->setRadius(edgeRadius);
+    showEdges->setColor(ORANGE_VEC);
 
 //     // Show selected faces.
-//     std::vector<std::array<double, 3>> faceColors(mesh->nFaces());
-//     for (size_t i = 0; i < mesh->nFaces(); i++) {
-//         faceColors[i] = BLUE;
-//     }
-//     for (std::set<size_t>::iterator it = polyscope::state::subset.faces.begin();
-//          it != polyscope::state::subset.faces.end(); ++it) {
-//         faceColors[*it] = ORANGE;
-//     }
-//     polyscope::SurfaceFaceColorQuantity* showFaces = psMesh->addFaceColorQuantity("selected faces", faceColors);
-//     showFaces->setEnabled(true);
+    std::vector<std::array<double, 3>> faceColors(SCO.nFaces());
+    for (size_t i = 0; i < SCO.nFaces(); i++) {
+        faceColors[i] = BLUE;
+    }
+    for (std::set<size_t>::iterator it = polyscope::state::subset.faces.begin();
+         it != polyscope::state::subset.faces.end(); ++it) {
+        faceColors[*it] = ORANGE;
+    }
+    polyscope::SurfaceFaceColorQuantity* showFaces = psMesh->addFaceColorQuantity("selected faces", faceColors);
+    showFaces->setEnabled(true);
 }
 
 void redraw() {
-    // showSelected();
+    showSelected();
     polyscope::requestRedraw();
 }
 
@@ -231,14 +241,64 @@ int main(int argc, char** argv) {
     polyscope::state::userCallback = functionCallback;
     
     // Add mesh to GUI
-    psMesh = polyscope::registerSurfaceMesh(MESHNAME, meshV, FF);
+    psMesh = polyscope::registerSurfaceMesh(MESHNAME, meshV, SCO.F);
+    // Set edge indices
+    typedef std::tuple<size_t, size_t> key_e;
+    std::set<key_e> e_set;
+    std::vector<size_t> edgeIndices;
+    std::vector<size_t> edgeFirst;
+    std::vector<size_t> edgeSecond;
+    for (int i = 0; i < SCO.nEdges(); ++i){
+        edgeFirst.push_back(SCO.E(i, 0));
+        edgeSecond.push_back(SCO.E(i, 1));
+    }
+    int cnt =0;
+    for (int i = 0; i < SCO.nFaces(); ++i)
+    {
+        for(int j = 0; j < 3; j++) {
+            size_t vertex_A = SCO.F(i, j);
+            size_t vertex_B = SCO.F(i, (j+1) % 3 );
+            size_t min = std::min({vertex_A, vertex_B});
+            size_t max = std::max({vertex_A, vertex_B});
+            key_e cur_key = std::make_tuple(min, max);
+            auto search = e_set.find(cur_key);
+            if(search != e_set.end()){
+                // found
+                continue;
+            }
+            else{
+                e_set.insert(cur_key);
+                std::cout<<"edge indices: "<<cnt<<", s:"<<min<<", e:"<<max<<", index:"<<SCO.map_e[cur_key]<<std::endl;
+                // edgeIndices.push_back(SCO.map_e[cur_key]); 
+                edgeIndices.push_back(SCO.map_e[cur_key]); 
+                cnt++;
+            }
+        } 
+    }  
+    std::cout<<"edge indices 1: "<<edgeIndices.size()<<std::endl;
+    for (int i = 0; i < edgeIndices.size(); ++i) {
+        std::cout << edgeIndices[i] << ", ";
+    }
+    std::cout<<std::endl;
+    std::cout<<"edge indices 2: "<<edgeIndices.size()<<std::endl;
+    psMesh->setEdgePermutation(edgeIndices, edgeIndices.size());
+    print_vec(psMesh->edgePerm);
+    // psMesh->buildEdgeInfoGui();
+
+    // psMesh->setEdgePermutation(edgeFirst, edgeSecond);
 
     // Mesh initialization
     // Add visualization options.
     flipZ();
-    // double lengthScale = geometry->meanEdgeLength();
-    // vertexRadius = lengthScale * 0.1;
-    // edgeRadius = lengthScale * 0.05;
+    double sum = 0;
+    for (int i = 0; i < SCO.nEdges(); ++i)
+    {
+        sum += (meshV.row(SCO.E(i, 0)) - meshV.row(SCO.E(i, 1))).norm();
+    }
+    sum /= SCO.nEdges();
+    double lengthScale = sum;
+    vertexRadius = lengthScale * 0.1;
+    edgeRadius = lengthScale * 0.05;
 
     // Give control to the polyscope gui
     polyscope::show();

@@ -43,3 +43,5 @@ Matrix remove_duplicate_rows(Matrix source);
 Matrix preprocess_matrix(Matrix &source);
 
 void print_set(const std::set<size_t>& source);
+
+void print_vec(const std::vector<size_t>& source);

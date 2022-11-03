@@ -47,7 +47,7 @@ public:
     int nVertices() const;
     int nFaces() const;
     int nTets() const;
-private:
+// private:
     size_t num_v;
     Matrix T;
     Matrix E;

@@ -149,3 +149,10 @@ void print_set(const std::set<size_t>& source){
     }
     std::cout << std::endl;
 } 
+
+void print_vec(const std::vector<size_t>& source){
+    for (int i=0; i<source.size(); ++i) {
+        std::cout << source[i] << ", ";
+    }
+    std::cout << std::endl;
+}
