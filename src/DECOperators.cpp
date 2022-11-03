@@ -20,17 +20,13 @@ DECOperators::DECOperators(){
 DECOperators::DECOperators(Matrix &T){
     this->initialize(T);
 }
+
 void DECOperators::initialize(Matrix &T){
-    std::cout<<"T:"<<T.cols()<<std::endl;
-    for (int i=0; i< T.rows(); i++) {
-        RowVector r = T.row(i);
-        T.row(i) = sort_rvector(r);
-    }
+    std::cout<<"T cols:"<<T.cols()<<std::endl;
+    std::cout<<"T:\n"<<this->T<<std::endl;
+    T = preprocess_matrix(T);
     if (T.cols() == 4) {
         // tets, assume each row (tet) already has the positive orientation
-        Matrix sorted_T = T;
-        std::cout<<"sorted:\n"<<sort_matrix(T)<<std::endl;
-        std::cout<<"removed:\n"<<remove_duplicate_rows(T)<<std::endl;;
         this->T = T;
         Vector maxVal = T.rowwise().maxCoeff();
         this->num_v = maxVal.maxCoeff()+1;
@@ -43,8 +39,7 @@ void DECOperators::initialize(Matrix &T){
         }
     else if(T.cols() == 3){
         // faces, assume each row (face) already has the positive orientation
-        std::cout<<"T:\n"<<this->T<<std::endl;
-        this->F = remove_duplicate_rows(sort_matrix(T));
+        this->F = T;
         std::cout<<"this->F:\n"<<this->F<<std::endl;
         Vector maxVal = this->F.rowwise().maxCoeff();
         this->num_v = maxVal.maxCoeff()+1;
@@ -54,6 +49,19 @@ void DECOperators::initialize(Matrix &T){
         this->build_boundary_mat2();
     }
     std::cout<<"Total vertices:"<<this->num_v<<", edges:"<<this->E.rows()<<", faces:"<<this->F.rows()<<", tets:"<<this->T.rows()<<std::endl;
+}
+
+int DECOperators::nEdges() const{
+    return this->E.rows();
+}
+int DECOperators::nVertices() const{
+    return this->num_v;
+}
+int DECOperators::nFaces() const{
+    return this->F.rows();
+}
+int DECOperators::nTets() const{
+    return this->T.rows();
 }
 
 void DECOperators::create_edges(){

@@ -42,6 +42,11 @@ public:
     bool isComplex(const SimplexSubset& subset) const;
     size_t isPureComplex(const SimplexSubset& subset) const;
     SimplexSubset boundary(const SimplexSubset& subset) const;
+    //
+    int nEdges() const;
+    int nVertices() const;
+    int nFaces() const;
+    int nTets() const;
 private:
     size_t num_v;
     Matrix T;

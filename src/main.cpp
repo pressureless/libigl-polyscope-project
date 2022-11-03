@@ -54,13 +54,15 @@ std::array<double, 3> ORANGE = {1, 0.65, 0};
 void flipZ() {
     // Rotate mesh 180 deg about up-axis on startup
     glm::mat4x4 rot = glm::rotate(glm::mat4x4(1.0f), static_cast<float>(PI), glm::vec3(0, 1, 0));
-    for (Vertex v : mesh->vertices()) {
-        Vector3 vec = geometry->inputVertexPositions[v];
+    for (int v=0; v < SCO.nVertices(); v++) {
+        auto vec = meshV.row(v);
         glm::vec4 rvec = {vec[0], vec[1], vec[2], 1.0};
         rvec = rot * rvec;
-        geometry->inputVertexPositions[v] = {rvec[0], rvec[1], rvec[2]};
+        meshV(v, 0) = rvec[0]; 
+        meshV(v, 1) = rvec[1]; 
+        meshV(v, 2) = rvec[2]; 
     }
-    psMesh->updateVertexPositions(geometry->inputVertexPositions);
+    psMesh->updateVertexPositions(meshV);
 }
 
 /*
@@ -70,49 +72,50 @@ void flipZ() {
  */
 void showSelected() {
 
-    // Show selected vertices.
-    std::vector<Vector3> vertPos;
-    std::vector<std::array<size_t, 2>> vertInd;
-    for (std::set<size_t>::iterator it = polyscope::state::subset.vertices.begin();
-         it != polyscope::state::subset.vertices.end(); ++it) {
-        vertPos.push_back(geometry->inputVertexPositions[*it]);
-    }
-    polyscope::SurfaceGraphQuantity* showVerts = psMesh->addSurfaceGraphQuantity("selected vertices", vertPos, vertInd);
-    showVerts->setEnabled(true);
-    showVerts->setRadius(vertexRadius);
-    showVerts->setColor(ORANGE_VEC);
+//     // Show selected vertices.
+//     std::vector<Vector3> vertPos;
+//     std::vector<std::array<size_t, 2>> vertInd;
+//     for (std::set<size_t>::iterator it = polyscope::state::subset.vertices.begin();
+//         it != polyscope::state::subset.vertices.end(); ++it) {
+//         int cur = *it;
+//         vertPos.push_back(meshV.row(cur));
+//     }
+//     polyscope::SurfaceGraphQuantity* showVerts = psMesh->addSurfaceGraphQuantity("selected vertices", vertPos, vertInd);
+//     showVerts->setEnabled(true);
+//     showVerts->setRadius(vertexRadius);
+//     showVerts->setColor(ORANGE_VEC);
 
-    // Show selected edges.
-    std::vector<Vector3> edgePos;
-    std::vector<std::array<size_t, 2>> edgeInd;
-    for (std::set<size_t>::iterator it = polyscope::state::subset.edges.begin();
-         it != polyscope::state::subset.edges.end(); ++it) {
-        Edge e = mesh->edge(*it);
-        edgePos.push_back(geometry->inputVertexPositions[e.firstVertex()]);
-        edgePos.push_back(geometry->inputVertexPositions[e.secondVertex()]);
-        size_t i = edgeInd.size();
-        edgeInd.push_back({2 * i, 2 * i + 1});
-    }
-    polyscope::SurfaceGraphQuantity* showEdges = psMesh->addSurfaceGraphQuantity("selected edges", edgePos, edgeInd);
-    showEdges->setEnabled(true);
-    showEdges->setRadius(edgeRadius);
-    showEdges->setColor(ORANGE_VEC);
+//     // Show selected edges.
+//     std::vector<Vector3> edgePos;
+//     std::vector<std::array<size_t, 2>> edgeInd;
+//     for (std::set<size_t>::iterator it = polyscope::state::subset.edges.begin();
+//          it != polyscope::state::subset.edges.end(); ++it) {
+//         Edge e = mesh->edge(*it);
+//         edgePos.push_back(meshV.row(e.firstVertex()));
+//         edgePos.push_back(meshV.row(e.secondVertex()));
+//         size_t i = edgeInd.size();
+//         edgeInd.push_back({2 * i, 2 * i + 1});
+//     }
+//     polyscope::SurfaceGraphQuantity* showEdges = psMesh->addSurfaceGraphQuantity("selected edges", edgePos, edgeInd);
+//     showEdges->setEnabled(true);
+//     showEdges->setRadius(edgeRadius);
+//     showEdges->setColor(ORANGE_VEC);
 
-    // Show selected faces.
-    std::vector<std::array<double, 3>> faceColors(mesh->nFaces());
-    for (size_t i = 0; i < mesh->nFaces(); i++) {
-        faceColors[i] = BLUE;
-    }
-    for (std::set<size_t>::iterator it = polyscope::state::subset.faces.begin();
-         it != polyscope::state::subset.faces.end(); ++it) {
-        faceColors[*it] = ORANGE;
-    }
-    polyscope::SurfaceFaceColorQuantity* showFaces = psMesh->addFaceColorQuantity("selected faces", faceColors);
-    showFaces->setEnabled(true);
+//     // Show selected faces.
+//     std::vector<std::array<double, 3>> faceColors(mesh->nFaces());
+//     for (size_t i = 0; i < mesh->nFaces(); i++) {
+//         faceColors[i] = BLUE;
+//     }
+//     for (std::set<size_t>::iterator it = polyscope::state::subset.faces.begin();
+//          it != polyscope::state::subset.faces.end(); ++it) {
+//         faceColors[*it] = ORANGE;
+//     }
+//     polyscope::SurfaceFaceColorQuantity* showFaces = psMesh->addFaceColorQuantity("selected faces", faceColors);
+//     showFaces->setEnabled(true);
 }
 
 void redraw() {
-    showSelected();
+    // showSelected();
     polyscope::requestRedraw();
 }
 
@@ -163,6 +166,17 @@ void functionCallback() {
         polyscope::state::subset = S;
         redraw();
     }
+
+    if (ImGui::Button("Face color")) {
+        std::vector<std::array<double, 3>> fColor(meshF.rows());
+        for (size_t iF = 0; iF < meshF.rows(); iF++) { 
+          fColor[iF] = {{polyscope::randomUnit(), polyscope::randomUnit(), polyscope::randomUnit()}};
+          std::cout<<"fColor[iF]: "<<fColor[iF][0]<<fColor[iF][1]<<fColor[iF][2]<<std::endl;
+        } 
+        // Visualize
+        polyscope::getSurfaceMesh(MESHNAME)->addFaceColorQuantity("fColor", fColor);
+        redraw();
+    }
 }
 
 
@@ -193,48 +207,41 @@ int main(int argc, char** argv) {
     igl::readOBJ(filepath, meshV, meshF);
     std::cout<<"meshV:\n"<<meshV<<std::endl;
     std::cout<<"meshF:\n"<<meshF<<std::endl;
-
+    // 
+    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic > F = meshF.cast<size_t>();
+    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic >  FF = preprocess_matrix(F);
+    meshF = FF.cast<int>();
+    SCO.initialize(F);
+    SCO.vertices_of_diamond(0);
+    //
     // Load mesh
     // std::tie(mesh_uptr, geometry_uptr) = readManifoldSurfaceMesh(filepath);
     // mesh = mesh_uptr.release();
     // geometry = geometry_uptr.release();
 
     // Get indices for element picking
-    // polyscope::state::facePickIndStart = mesh->nVertices();
-    // polyscope::state::edgePickIndStart = polyscope::state::facePickIndStart + mesh->nFaces();
-    // polyscope::state::halfedgePickIndStart = polyscope::state::edgePickIndStart + mesh->nEdges();
+    polyscope::state::facePickIndStart = meshV.rows();
+    polyscope::state::edgePickIndStart = polyscope::state::facePickIndStart + meshF.rows();
+    polyscope::state::halfedgePickIndStart = polyscope::state::edgePickIndStart + SCO.nEdges();
 
     // Initialize polyscope
     polyscope::init();
 
     // Set the callback function
     polyscope::state::userCallback = functionCallback;
-    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic > F = meshF.cast<size_t>();
-
-    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic >  FF = preprocess_matrix(F);
+    
     // Add mesh to GUI
     psMesh = polyscope::registerSurfaceMesh(MESHNAME, meshV, FF);
 
     // Mesh initialization
-    SCO.initialize(F);
-    SCO.vertices_of_diamond(0);
     // Add visualization options.
-    // flipZ();
+    flipZ();
     // double lengthScale = geometry->meanEdgeLength();
     // vertexRadius = lengthScale * 0.1;
     // edgeRadius = lengthScale * 0.05;
 
     // Give control to the polyscope gui
     polyscope::show();
-
-    // Make some random colors
-    std::vector<std::array<double, 3>> fColor(F.rows());
-    for (size_t iF = 0; iF < F.rows(); iF++) { 
-      fColor[iF] = {{polyscope::randomUnit(), polyscope::randomUnit(), polyscope::randomUnit()}};
-    }
-
-    // Visualize
-    polyscope::getSurfaceMesh("name")->addFaceColorQuantity("fColor", fColor);
 
     return EXIT_SUCCESS;
 }
