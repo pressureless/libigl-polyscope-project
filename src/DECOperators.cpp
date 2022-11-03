@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <vector>
-#include "util.h"
+#include "dec_util.h"
 #include "DECOperators.h"
 typedef Eigen::Matrix< size_t, Eigen::Dynamic, 1> Vector;
 typedef Eigen::Matrix< size_t, 1, Eigen::Dynamic> RowVector;

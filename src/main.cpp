@@ -20,6 +20,7 @@
 #include "args/args.hxx"
 #include "imgui.h"
 
+#include "dec_util.h"
 #include "DECOperators.h"
 
 using namespace geometrycentral;
@@ -208,14 +209,15 @@ int main(int argc, char** argv) {
 
     // Set the callback function
     polyscope::state::userCallback = functionCallback;
+    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic > F = meshF.cast<size_t>();
 
+    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic >  FF = preprocess_matrix(F);
     // Add mesh to GUI
-    psMesh = polyscope::registerSurfaceMesh(MESHNAME, meshV, meshF);
+    psMesh = polyscope::registerSurfaceMesh(MESHNAME, meshV, FF);
 
     // Mesh initialization
-    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> aa = meshF.cast<size_t>();
-    SCO.initialize(aa);
-
+    SCO.initialize(F);
+    SCO.vertices_of_diamond(0);
     // Add visualization options.
     // flipZ();
     // double lengthScale = geometry->meanEdgeLength();
@@ -224,6 +226,15 @@ int main(int argc, char** argv) {
 
     // Give control to the polyscope gui
     polyscope::show();
+
+    // Make some random colors
+    std::vector<std::array<double, 3>> fColor(F.rows());
+    for (size_t iF = 0; iF < F.rows(); iF++) { 
+      fColor[iF] = {{polyscope::randomUnit(), polyscope::randomUnit(), polyscope::randomUnit()}};
+    }
+
+    // Visualize
+    polyscope::getSurfaceMesh("name")->addFaceColorQuantity("fColor", fColor);
 
     return EXIT_SUCCESS;
 }

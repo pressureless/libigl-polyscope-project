@@ -4,15 +4,11 @@
 //
 //  Created by pressure on 10/31/22.
 //
+#pragma once
 
-#ifndef util_h
-#define util_h
-
-#include <iostream>
-#include <set>
-#include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
+#include "dec_util.h"
 // using Eigen::Matrix;
 // using Eigen::Vector;
 
@@ -138,11 +134,18 @@ Matrix remove_duplicate_rows(Matrix source){
 }
 
 
+Matrix preprocess_matrix(Matrix &source){
+    for (int i=0; i< source.rows(); i++) {
+        RowVector r = source.row(i);
+        source.row(i) = sort_rvector(r);
+    }
+    return remove_duplicate_rows(sort_matrix(source));
+}
+
+
 void print_set(const std::set<size_t>& source){
     for (std::set<size_t>::iterator it = source.begin(); it != source.end(); ++it) {
         std::cout << *it << ", ";
     }
     std::cout << std::endl;
-}
-
-#endif /* util_h */
+} 

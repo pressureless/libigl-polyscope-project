@@ -85,6 +85,7 @@ add_subdirectory(deps/geometry-central)
 set(SRCS 
   src/main.cpp
   src/DECOperators.cpp
+  src/dec_util.cpp
 )
 
 add_executable(main "${SRCS}")
