@@ -160,7 +160,7 @@ class SimplexSubset {
     }
 
     /* Prsize_t vertices. */
-    void prsize_tVertices() {
+    void printVertices() {
         std::cout << "Vertices: ";
         for (std::set<size_t>::iterator it = vertices.begin(); it != vertices.end(); ++it) {
             std::cout << *it << ", ";
@@ -169,7 +169,7 @@ class SimplexSubset {
     }
 
     /* Prsize_t edges. */
-    void prsize_tEdges() {
+    void printEdges() {
         std::cout << "Edges: ";
         for (std::set<size_t>::iterator it = edges.begin(); it != edges.end(); ++it) {
             std::cout << *it << ", ";
@@ -178,7 +178,7 @@ class SimplexSubset {
     }
     
     /* Prsize_t Faces. */
-    void prsize_tFaces() {
+    void printFaces() {
         std::cout << "Faces: ";
         for (std::set<size_t>::iterator it = faces.begin(); it != faces.end(); ++it) {
             std::cout << *it << ", ";
@@ -187,7 +187,7 @@ class SimplexSubset {
     }
     
     /* Prsize_t Tets. */
-    void prsize_tTets() {
+    void printTets() {
         std::cout << "Tets: ";
         for (std::set<size_t>::iterator it = tets.begin(); it != tets.end(); ++it) {
             std::cout << *it << ", ";
@@ -196,10 +196,10 @@ class SimplexSubset {
     }
     
     /* Prsize_t All. */
-    void prsize_tAll() {
-        prsize_tTets();
-        prsize_tFaces();
-        prsize_tEdges();
-        prsize_tVertices();
+    void printAll() {
+        printTets();
+        printFaces();
+        printEdges();
+        printVertices();
     }
 };

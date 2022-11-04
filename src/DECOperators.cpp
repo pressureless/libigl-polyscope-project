@@ -10,6 +10,8 @@
 #include <vector>
 #include "dec_util.h"
 #include "DECOperators.h"
+using Eigen::VectorXi;
+using Eigen::MatrixXi;
 typedef Eigen::Matrix< size_t, Eigen::Dynamic, 1> Vector;
 typedef Eigen::Matrix< size_t, 1, Eigen::Dynamic> RowVector;
 typedef Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> Matrix;
@@ -153,7 +155,7 @@ void DECOperators::build_boundary_mat2(){
     }
     this->bm2.setFromTriplets(tripletList.begin(), tripletList.end());
     this->pos_bm2 = this->bm2.cwiseAbs();
-    // std::cout<<"this->bm2:\n"<<this->bm2<<std::endl;
+    std::cout<<"this->bm2:\n"<<this->bm2<<std::endl;
     // std::cout<<"this->pos_bm2:\n"<<this->pos_bm2<<std::endl;
 }
 
@@ -166,7 +168,7 @@ void DECOperators::build_boundary_mat1(){
     }
     this->bm1.setFromTriplets(tripletList.begin(), tripletList.end());
     this->pos_bm1 = this->bm1.cwiseAbs();
-    // std::cout<<"this->bm1:\n"<<this->bm1<<std::endl;
+    std::cout<<"this->bm1:\n"<<this->bm1<<std::endl;
     // std::cout<<"this->pos_bm1:\n"<<this->pos_bm1<<std::endl;
 }
 
@@ -188,8 +190,8 @@ std::set<size_t> DECOperators::vertices_of_diamond(size_t eindex){
     return ver;
 }
 
-Vector DECOperators::buildVertexVector(const SimplexSubset& subset) const{
-    Vector v = Vector::Zero(this->num_v);
+VectorXi DECOperators::buildVertexVector(const SimplexSubset& subset) const{
+    VectorXi v = VectorXi::Zero(this->num_v);
     for (size_t idx : subset.vertices)
     {
         v[idx] = 1;
@@ -197,8 +199,8 @@ Vector DECOperators::buildVertexVector(const SimplexSubset& subset) const{
     return v;
 }
 
-Vector DECOperators::buildEdgeVector(const SimplexSubset& subset) const{
-    Vector e = Vector::Zero(this->E.rows());
+VectorXi DECOperators::buildEdgeVector(const SimplexSubset& subset) const{
+    VectorXi e = VectorXi::Zero(this->E.rows());
     for (auto idx : subset.edges)
     {
         e[idx] = 1;
@@ -206,8 +208,8 @@ Vector DECOperators::buildEdgeVector(const SimplexSubset& subset) const{
     return e;
 }
 
-Vector DECOperators::buildFaceVector(const SimplexSubset& subset) const{
-    Vector f = Vector::Zero(this->F.rows());
+VectorXi DECOperators::buildFaceVector(const SimplexSubset& subset) const{
+    VectorXi f = VectorXi::Zero(this->F.rows());
     for (size_t idx : subset.faces)
     {
         f[idx] = 1;
@@ -217,10 +219,14 @@ Vector DECOperators::buildFaceVector(const SimplexSubset& subset) const{
 
 SimplexSubset DECOperators::star(const SimplexSubset& subset) const{
     SimplexSubset newSet = subset.deepCopy();
-    Vector v = this->buildVertexVector(subset);
-    Vector e = this->buildEdgeVector(subset);
-    SparseMatrix<size_t> fv = (this->pos_bm1*this->pos_bm2).transpose();
-    Vector extraE = this->pos_bm1.transpose() * v;
+    VectorXi v = this->buildVertexVector(subset);
+    std::cout<<"v:"<<v<<std::endl;
+    VectorXi e = this->buildEdgeVector(subset);
+    std::cout<<"pos_bm1:"<<pos_bm1<<std::endl;
+    std::cout<<"pos_bm2:"<<pos_bm2<<std::endl;
+    SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
+    std::cout<<"fv:"<<fv<<std::endl;
+    VectorXi extraE = this->pos_bm1.transpose() * v;
     for (size_t i = 0; i < extraE.size(); ++i)
     {
         if (extraE[i])
@@ -228,7 +234,7 @@ SimplexSubset DECOperators::star(const SimplexSubset& subset) const{
             newSet.addEdge(i);
         }
     }
-    Vector extraF = this->pos_bm2.transpose() * e + fv * v;
+    VectorXi extraF = this->pos_bm2.transpose() * e + fv * v;
     for (size_t i = 0; i < extraF.size(); ++i)
     {
         if (extraF[i])
@@ -236,12 +242,13 @@ SimplexSubset DECOperators::star(const SimplexSubset& subset) const{
             newSet.addFace(i);
         }
     }
+    std::cout<<"extraF:"<<extraF<<std::endl;
     return newSet;
 }
 SimplexSubset DECOperators::closure(const SimplexSubset& subset) const{
     SimplexSubset newSet = subset.deepCopy();
-    Vector f = this->buildFaceVector(subset);
-    Vector extraE = this->pos_bm2 * f;
+    VectorXi f = this->buildFaceVector(subset);
+    VectorXi extraE = this->pos_bm2 * f;
     for (size_t i = 0; i < extraE.size(); ++i)
     {
         if (extraE[i])
@@ -249,8 +256,8 @@ SimplexSubset DECOperators::closure(const SimplexSubset& subset) const{
             newSet.addEdge(i);
         }
     }
-    Vector e = this->buildEdgeVector(newSet);
-    Vector extraV = this->pos_bm1 * e;
+    VectorXi e = this->buildEdgeVector(newSet);
+    VectorXi extraV = this->pos_bm1 * e;
     for (size_t i = 0; i < extraV.size(); ++i)
     {
         if (extraV[i])
@@ -271,7 +278,7 @@ bool DECOperators::isComplex(const SimplexSubset& subset) const{
 }
 size_t DECOperators::isPureComplex(const SimplexSubset& subset) const{
     size_t degree = -1;
-    SparseMatrix<size_t> fv = (this->pos_bm1*this->pos_bm2).transpose();
+    SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
     if (this->isComplex(subset))
     {
         if (subset.faces.size() > 0)
@@ -343,7 +350,7 @@ size_t DECOperators::isPureComplex(const SimplexSubset& subset) const{
 } 
 SimplexSubset DECOperators::boundary(const SimplexSubset& subset) const{
     SimplexSubset newSet;
-    SparseMatrix<size_t> fv = (this->pos_bm1*this->pos_bm2).transpose();
+    SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
     if (this->isPureComplex(subset))
     {
         // check edges

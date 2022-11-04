@@ -33,9 +33,9 @@ public:
     std::set<size_t> one_ring_vertices(size_t vindex);
     std::set<size_t> vertices_of_diamond(size_t eindex);
     // simplicial complex
-    Vector buildVertexVector(const SimplexSubset& subset) const;
-    Vector buildEdgeVector(const SimplexSubset& subset) const;
-    Vector buildFaceVector(const SimplexSubset& subset) const;
+    Eigen::VectorXi buildVertexVector(const SimplexSubset& subset) const;
+    Eigen::VectorXi buildEdgeVector(const SimplexSubset& subset) const;
+    Eigen::VectorXi buildFaceVector(const SimplexSubset& subset) const;
     SimplexSubset star(const SimplexSubset& subset) const;
     SimplexSubset closure(const SimplexSubset& subset) const;
     SimplexSubset link(const SimplexSubset& subset) const;
@@ -54,12 +54,12 @@ public:
     Matrix F;
     std::map<key_f, size_t> map_f; // tuple -> face index
     std::map<key_e, size_t> map_e; // tuple -> edge index
-    Eigen::SparseMatrix<size_t> bm1; // |V|x|E|
-    Eigen::SparseMatrix<size_t> pos_bm1; // |V|x|E|
-    Eigen::SparseMatrix<size_t> bm2; // |E|x|F|
-    Eigen::SparseMatrix<size_t> pos_bm2; // |E|x|F|
-    Eigen::SparseMatrix<size_t> bm3; // |F|x|T|
-    Eigen::SparseMatrix<size_t> pos_bm3; // |F|x|T|
+    Eigen::SparseMatrix<int> bm1; // |V|x|E|
+    Eigen::SparseMatrix<int> pos_bm1; // |V|x|E|
+    Eigen::SparseMatrix<int> bm2; // |E|x|F|
+    Eigen::SparseMatrix<int> pos_bm2; // |E|x|F|
+    Eigen::SparseMatrix<int> bm3; // |F|x|T|
+    Eigen::SparseMatrix<int> pos_bm3; // |F|x|T|
 };
 
 #endif /* DECOperators_h */

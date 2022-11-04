@@ -168,6 +168,7 @@ void functionCallback() {
     if (ImGui::Button("Star")) {
         SimplexSubset S = SCO.star(polyscope::state::subset);
         polyscope::state::subset = S;
+        S.printAll();
         redraw();
     }
 
