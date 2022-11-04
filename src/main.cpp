@@ -28,6 +28,8 @@
 // using namespace geometrycentral::surface;
 Eigen::MatrixXd meshV;
 Eigen::MatrixXi meshF;
+std::vector<size_t> edgeIndices;
+std::vector<size_t> revEdgeIndices;
 // == Geometry-central data
 // std::unique_ptr<ManifoldSurfaceMesh> mesh_uptr;
 // std::unique_ptr<VertexPositionGeometry> geometry_uptr;
@@ -72,7 +74,7 @@ void flipZ() {
  * cleaner code
  */
 void showSelected() {
-    
+
     print_vec(psMesh->edgePerm);
     // Show selected vertices. 
     Eigen::MatrixXd vertPos(polyscope::state::subset.vertices.size(), 3);
@@ -127,6 +129,10 @@ void showSelected() {
 void redraw() {
     showSelected();
     polyscope::requestRedraw();
+}
+
+std::vector<size_t> getMapping(){
+    return psMesh->edgePerm;
 }
 
 /*
@@ -245,7 +251,6 @@ int main(int argc, char** argv) {
     // Set edge indices
     typedef std::tuple<size_t, size_t> key_e;
     std::set<key_e> e_set;
-    std::vector<size_t> edgeIndices;
     std::vector<size_t> edgeFirst;
     std::vector<size_t> edgeSecond;
     for (int i = 0; i < SCO.nEdges(); ++i){
@@ -275,6 +280,10 @@ int main(int argc, char** argv) {
             }
         } 
     }  
+    revEdgeIndices.resize(edgeIndices.size());
+    for (int i = 0; i < edgeIndices.size(); ++i){
+        revEdgeIndices[edgeIndices[i]] = i;
+    }
     std::cout<<"edge indices 1: "<<edgeIndices.size()<<std::endl;
     for (int i = 0; i < edgeIndices.size(); ++i) {
         std::cout << edgeIndices[i] << ", ";
