@@ -46,20 +46,20 @@ public:
     std::set<size_t> get_adjacent_faces_f(size_t findex); 
     std::set<size_t> get_adjacent_faces_f2(size_t findex); 
     // simplicial complex
-    Eigen::VectorXi buildVertexVector(const SimplexSubset& subset) const;
-    Eigen::VectorXi buildEdgeVector(const SimplexSubset& subset) const;
-    Eigen::VectorXi buildFaceVector(const SimplexSubset& subset) const;
+    Eigen::VectorXi build_vertex_vector(const SimplexSubset& subset) const;
+    Eigen::VectorXi build_edge_vector(const SimplexSubset& subset) const;
+    Eigen::VectorXi build_face_vector(const SimplexSubset& subset) const;
     SimplexSubset star(const SimplexSubset& subset) const;
     SimplexSubset closure(const SimplexSubset& subset) const;
     SimplexSubset link(const SimplexSubset& subset) const;
-    bool isComplex(const SimplexSubset& subset) const;
-    size_t isPureComplex(const SimplexSubset& subset) const;
+    bool is_complex(const SimplexSubset& subset) const;
+    size_t is_pure_complex(const SimplexSubset& subset) const;
     SimplexSubset boundary(const SimplexSubset& subset) const;
     //
-    int nEdges() const;
-    int nVertices() const;
-    int nFaces() const;
-    int nTets() const;
+    int n_edges() const;
+    int n_vertices() const;
+    int n_faces() const;
+    int n_tets() const;
     size_t get_edge_index(size_t i, size_t j, int &sign);
     size_t get_face_index(size_t i, size_t j, size_t k, int &sign);
 // private:

@@ -34,7 +34,7 @@ void DECOperators::initialize(Eigen::MatrixXi &T){
 void DECOperators::initialize(Matrix &T){
     std::cout<<"T cols:"<<T.cols()<<std::endl;
     this->T = preprocess_matrix(T);
-    std::cout<<"T:\n"<<this->T<<std::endl;
+    // std::cout<<"T:\n"<<this->T<<std::endl;
     if (T.cols() == 4) {
         // tets, assume each row (tet) already has the positive orientation
         this->T = T;
@@ -61,16 +61,16 @@ void DECOperators::initialize(Matrix &T){
     std::cout<<"Total vertices:"<<this->num_v<<", edges:"<<this->E.rows()<<", faces:"<<this->F.rows()<<", tets:"<<this->T.rows()<<std::endl;
 }
 
-int DECOperators::nEdges() const{
+int DECOperators::n_edges() const{
     return this->E.rows();
 }
-int DECOperators::nVertices() const{
+int DECOperators::n_vertices() const{
     return this->num_v;
 }
-int DECOperators::nFaces() const{
+int DECOperators::n_faces() const{
     return this->F.rows();
 }
-int DECOperators::nTets() const{
+int DECOperators::n_tets() const{
     return this->T.rows();
 }
 
@@ -379,7 +379,7 @@ std::set<size_t> DECOperators::get_adjacent_faces_f2(size_t findex){
     return result;
 }
 
-VectorXi DECOperators::buildVertexVector(const SimplexSubset& subset) const{
+VectorXi DECOperators::build_vertex_vector(const SimplexSubset& subset) const{
     VectorXi v = VectorXi::Zero(this->num_v);
     for (size_t idx : subset.vertices)
     {
@@ -388,7 +388,7 @@ VectorXi DECOperators::buildVertexVector(const SimplexSubset& subset) const{
     return v;
 }
 
-VectorXi DECOperators::buildEdgeVector(const SimplexSubset& subset) const{
+VectorXi DECOperators::build_edge_vector(const SimplexSubset& subset) const{
     VectorXi e = VectorXi::Zero(this->E.rows());
     for (auto idx : subset.edges)
     {
@@ -397,7 +397,7 @@ VectorXi DECOperators::buildEdgeVector(const SimplexSubset& subset) const{
     return e;
 }
 
-VectorXi DECOperators::buildFaceVector(const SimplexSubset& subset) const{
+VectorXi DECOperators::build_face_vector(const SimplexSubset& subset) const{
     VectorXi f = VectorXi::Zero(this->F.rows());
     for (size_t idx : subset.faces)
     {
@@ -408,9 +408,9 @@ VectorXi DECOperators::buildFaceVector(const SimplexSubset& subset) const{
 
 SimplexSubset DECOperators::star(const SimplexSubset& subset) const{
     SimplexSubset newSet = subset.deepCopy();
-    VectorXi v = this->buildVertexVector(subset);
+    VectorXi v = this->build_vertex_vector(subset);
     std::cout<<"v:"<<v<<std::endl;
-    VectorXi e = this->buildEdgeVector(subset);
+    VectorXi e = this->build_edge_vector(subset);
     // std::cout<<"pos_bm1:"<<pos_bm1<<std::endl;
     // std::cout<<"pos_bm2:"<<pos_bm2<<std::endl;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
@@ -436,7 +436,7 @@ SimplexSubset DECOperators::star(const SimplexSubset& subset) const{
 }
 SimplexSubset DECOperators::closure(const SimplexSubset& subset) const{
     SimplexSubset newSet = subset.deepCopy();
-    VectorXi f = this->buildFaceVector(subset);
+    VectorXi f = this->build_face_vector(subset);
     VectorXi extraE = this->pos_bm2 * f;
     for (size_t i = 0; i < extraE.size(); ++i)
     {
@@ -445,7 +445,7 @@ SimplexSubset DECOperators::closure(const SimplexSubset& subset) const{
             newSet.addEdge(i);
         }
     }
-    VectorXi e = this->buildEdgeVector(newSet);
+    VectorXi e = this->build_edge_vector(newSet);
     VectorXi extraV = this->pos_bm1 * e;
     for (size_t i = 0; i < extraV.size(); ++i)
     {
@@ -461,14 +461,14 @@ SimplexSubset DECOperators::link(const SimplexSubset& subset) const{
     newSet.deleteSubset(this->star(this->closure(subset)));
     return newSet;
 }
-bool DECOperators::isComplex(const SimplexSubset& subset) const{
+bool DECOperators::is_complex(const SimplexSubset& subset) const{
     SimplexSubset newSet = this->closure(subset);
     return newSet.equals(subset);
 }
-size_t DECOperators::isPureComplex(const SimplexSubset& subset) const{
+size_t DECOperators::is_pure_complex(const SimplexSubset& subset) const{
     size_t degree = -1;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
-    if (this->isComplex(subset))
+    if (this->is_complex(subset))
     {
         if (subset.faces.size() > 0)
         {
@@ -540,7 +540,7 @@ size_t DECOperators::isPureComplex(const SimplexSubset& subset) const{
 SimplexSubset DECOperators::boundary(const SimplexSubset& subset) const{
     SimplexSubset newSet;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
-    if (this->isPureComplex(subset))
+    if (this->is_pure_complex(subset))
     {
         // check edges
         for (size_t e : subset.edges)

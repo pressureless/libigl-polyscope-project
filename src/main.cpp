@@ -57,7 +57,7 @@ std::array<double, 3> ORANGE = {1, 0.65, 0};
 void flipZ() {
     // Rotate mesh 180 deg about up-axis on startup
     glm::mat4x4 rot = glm::rotate(glm::mat4x4(1.0f), static_cast<float>(igl::PI), glm::vec3(0, 1, 0));
-    for (int v=0; v < SCO.nVertices(); v++) {
+    for (int v=0; v < SCO.n_vertices(); v++) {
         auto vec = meshV.row(v);
         glm::vec4 rvec = {vec[0], vec[1], vec[2], 1.0};
         rvec = rot * rvec;
@@ -101,7 +101,7 @@ void showSelected() {
         int cur = *it;
         int fir = SCO.E(cur, 0);
         int sec = SCO.E(cur, 1); 
-        std::cout<<"fir:"<<fir<<", sec:"<<sec<<std::endl;
+        // std::cout<<"fir:"<<fir<<", sec:"<<sec<<std::endl;
         edgePos.row(idx) = meshV.row(fir); 
         edgePos.row(idx+1) = meshV.row(sec);  
         size_t i = idx;
@@ -114,8 +114,8 @@ void showSelected() {
     showEdges->setColor(ORANGE_VEC);
 
 //     // Show selected faces.
-    std::vector<std::array<double, 3>> faceColors(SCO.nFaces());
-    for (size_t i = 0; i < SCO.nFaces(); i++) {
+    std::vector<std::array<double, 3>> faceColors(SCO.n_faces());
+    for (size_t i = 0; i < SCO.n_faces(); i++) {
         faceColors[i] = BLUE;
     }
     for (std::set<size_t>::iterator it = polyscope::state::subset.faces.begin();
@@ -148,13 +148,13 @@ void functionCallback() {
     }
 
     if (ImGui::Button("isComplex")) {
-        isComplexResult = SCO.isComplex(polyscope::state::subset);
+        isComplexResult = SCO.is_complex(polyscope::state::subset);
     }
     ImGui::SameLine(100);
     ImGui::Text(isComplexResult ? "true" : "false");
 
     if (ImGui::Button("isPureComplex")) {
-        isPureComplexResult = SCO.isPureComplex(polyscope::state::subset);
+        isPureComplexResult = SCO.is_pure_complex(polyscope::state::subset);
     }
     ImGui::SameLine(130);
     ImGui::Text("%d", isPureComplexResult);
@@ -373,7 +373,7 @@ int main(int argc, char** argv) {
     // Get indices for element picking
     polyscope::state::facePickIndStart = meshV.rows();
     polyscope::state::edgePickIndStart = polyscope::state::facePickIndStart + meshF.rows();
-    polyscope::state::halfedgePickIndStart = polyscope::state::edgePickIndStart + SCO.nEdges();
+    polyscope::state::halfedgePickIndStart = polyscope::state::edgePickIndStart + SCO.n_edges();
 
     // Initialize polyscope
     polyscope::init();
@@ -388,12 +388,12 @@ int main(int argc, char** argv) {
     std::set<key_e> e_set;
     std::vector<size_t> edgeFirst;
     std::vector<size_t> edgeSecond;
-    for (int i = 0; i < SCO.nEdges(); ++i){
+    for (int i = 0; i < SCO.n_edges(); ++i){
         edgeFirst.push_back(SCO.E(i, 0));
         edgeSecond.push_back(SCO.E(i, 1));
     }
     int cnt =0;
-    for (int i = 0; i < SCO.nFaces(); ++i)
+    for (int i = 0; i < SCO.n_faces(); ++i)
     {
         for(int j = 0; j < 3; j++) {
             size_t vertex_A = SCO.F(i, j);
@@ -419,12 +419,12 @@ int main(int argc, char** argv) {
     for (int i = 0; i < edgeIndices.size(); ++i){
         revEdgeIndices[edgeIndices[i]] = i;
     }
-    std::cout<<"edge indices 1: "<<edgeIndices.size()<<std::endl;
-    for (int i = 0; i < edgeIndices.size(); ++i) {
-        std::cout << edgeIndices[i] << ", ";
-    }
-    std::cout<<std::endl;
-    std::cout<<"edge indices 2: "<<edgeIndices.size()<<std::endl;
+    // std::cout<<"edge indices 1: "<<edgeIndices.size()<<std::endl;
+    // for (int i = 0; i < edgeIndices.size(); ++i) {
+    //     std::cout << edgeIndices[i] << ", ";
+    // }
+    // std::cout<<std::endl;
+    // std::cout<<"edge indices 2: "<<edgeIndices.size()<<std::endl;
     psMesh->setEdgePermutation(edgeIndices, edgeIndices.size());
     print_vec(psMesh->edgePerm);
     // psMesh->buildEdgeInfoGui();
@@ -435,11 +435,11 @@ int main(int argc, char** argv) {
     // Add visualization options.
     flipZ();
     double sum = 0;
-    for (int i = 0; i < SCO.nEdges(); ++i)
+    for (int i = 0; i < SCO.n_edges(); ++i)
     {
         sum += (meshV.row(SCO.E(i, 0)) - meshV.row(SCO.E(i, 1))).norm();
     }
-    sum /= SCO.nEdges();
+    sum /= SCO.n_edges();
     double lengthScale = sum;
     vertexRadius = lengthScale * 0.1;
     edgeRadius = lengthScale * 0.05;
