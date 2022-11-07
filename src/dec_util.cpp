@@ -111,6 +111,32 @@ RowVector sort_rvector(RowVector &source){
     return t.transpose();
 }
 
+RowVector permute_rvector(RowVector &source){
+    if (source.cols() > 0)
+    {
+        int min_index = 0;
+        size_t cur_val = source(0);
+        for (int i = 1; i < source.cols(); ++i)
+        {
+            if (source(i)<cur_val)
+            {
+                cur_val = source(i);
+                min_index = i;
+            }
+        }
+        if (min_index != 0)
+        {
+            RowVector res(source.cols());
+            for (int i = 0; i < source.cols(); ++i)
+            {
+                res(i) = source((i+min_index)%source.cols());
+            }
+            return res;
+        }
+    }
+    return source;
+}
+
 Matrix remove_duplicate_rows(Matrix source){
     if (source.rows() == 0) {
         return source;
@@ -137,7 +163,7 @@ Matrix remove_duplicate_rows(Matrix source){
 Matrix preprocess_matrix(Matrix &source){
     for (int i=0; i< source.rows(); i++) {
         RowVector r = source.row(i);
-        source.row(i) = sort_rvector(r);
+        source.row(i) = permute_rvector(r);
     }
     return remove_duplicate_rows(sort_matrix(source));
 }
