@@ -58,6 +58,11 @@ class SimplexSubset {
         vertices.erase(index);
     }
 
+    /* Delete all vertices. */
+    void deleteVertices() {
+        this->vertices.clear();
+    }
+
     /* Delete a set of vertices from this subset. */
     void deleteVertices(const std::set<size_t>& V) {
         for (std::set<size_t>::iterator it = V.begin(); it != V.end(); ++it) {
@@ -80,6 +85,11 @@ class SimplexSubset {
     /* Delete an edge from this subset. */
     void deleteEdge(size_t index) {
         edges.erase(index);
+    }
+
+    /* Delete all edges. */
+    void deleteEdges() {
+        this->edges.clear();
     }
 
     /* Delete a set of edges from this subset. */
@@ -106,6 +116,11 @@ class SimplexSubset {
         faces.erase(index);
     }
 
+    /* Delete all faces. */
+    void deleteFaces() {
+        this->faces.clear();
+    }
+
     /* Delete a set of faces from this subset. */
     void deleteFaces(const std::set<size_t>& F) {
         for (std::set<size_t>::iterator it = F.begin(); it != F.end(); ++it) {
@@ -128,6 +143,11 @@ class SimplexSubset {
     /* Delete a tet from this subset. */
     void deleteTet(size_t index) {
         tets.erase(index);
+    }
+
+    /* Delete all tets. */
+    void deleteTets() {
+        this->tets.clear();
     }
 
     /* Delete a set of tets from this subset. */
@@ -193,6 +213,13 @@ class SimplexSubset {
             std::cout << *it << ", ";
         }
         std::cerr << std::endl;
+    }
+
+    void deleteAll(){
+        deleteVertices();
+        deleteEdges();
+        deleteFaces();
+        deleteTets();
     }
     
     /* Prsize_t All. */
