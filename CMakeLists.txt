@@ -79,7 +79,6 @@ add_subdirectory("deps/polyscope")
 #set(LIBIGL_WITH_OPENGL_GLFW_IMGUI OFF CACHE BOOL "Use ImGui" )
 #add_subdirectory("deps/libIGL")
 
-add_subdirectory(deps/geometry-central)
 
 # Create an executable
 set(SRCS 
@@ -98,4 +97,3 @@ target_include_directories(main PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/deps/polysco
 
 # Link settings
 target_link_libraries(main polyscope Eigen3::Eigen)
-target_link_libraries(main geometry-central)
