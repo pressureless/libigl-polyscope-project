@@ -19,9 +19,16 @@ typedef Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 DECOperators::DECOperators(){
 
 }
-
+DECOperators::DECOperators(Eigen::MatrixXi &T){
+    Matrix m = T.cast<size_t>();
+    this->initialize(m);
+}
 DECOperators::DECOperators(Matrix &T){
     this->initialize(T);
+}
+void DECOperators::initialize(Eigen::MatrixXi &T){
+    Matrix m = T.cast<size_t>();
+    this->initialize(m);
 }
 
 void DECOperators::initialize(Matrix &T){

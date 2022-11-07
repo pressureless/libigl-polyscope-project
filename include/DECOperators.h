@@ -20,8 +20,10 @@ typedef Eigen::Matrix< size_t, Eigen::Dynamic, 1> Vector;
 typedef Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 class DECOperators {
 public:
+    DECOperators(Eigen::MatrixXi &T);
     DECOperators(Matrix &T);
     DECOperators();
+    void initialize(Eigen::MatrixXi &T);
     void initialize(Matrix &T);
     void create_edges();
     void create_edges_from_faces();
