@@ -230,18 +230,87 @@ void DECOperators::build_boundary_mat1(){
     // std::cout<<"this->pos_bm1:\n"<<this->pos_bm1<<std::endl;
 }
 
-//
-std::set<size_t> DECOperators::one_ring_vertices(size_t vindex){
-    SimplexSubset verts;
-    verts.addVertex(vindex);
-    SimplexSubset result = link(verts);
-    std::set<size_t> neighbors = result.vertices;
-    print_set(neighbors);
-    return neighbors;
+// v as input
+std::set<size_t> DECOperators::get_adjacent_vertices_v(size_t vindex){
+    // simplex API
+    // SimplexSubset verts;
+    // verts.addVertex(vindex);
+    // SimplexSubset result = link(verts);
+    // std::set<size_t> neighbors = result.vertices;
+    // print_set(neighbors);
+    // return neighbors;
+    // matrix API
+    SparseMatrix<int> vv = this->pos_bm1 * this->pos_bm1.transpose();
+    std::set<size_t> result;
+    for (int k=0; k<vv.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(vv,k); it; ++it) {
+        if (it.row() == vindex && it.col() != vindex)
+        {
+            result.insert(it.col());
+        }
+      }
+    } 
+    print_set(result);
+    return result;
 }
 
+std::set<size_t> DECOperators::get_incident_edges_v(size_t vindex){
+    std::set<size_t> result;
+    for (int k=0; k<this->pos_bm1.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(this->pos_bm1,k); it; ++it) {
+        if (it.row() == vindex)
+        {
+            result.insert(it.col());
+        }
+      }
+    } 
+    print_set(result);
+    return result;
+}
+
+std::set<size_t> DECOperators::get_incident_faces_v(size_t vindex){
+    SparseMatrix<int> vf = this->pos_bm1 * this->pos_bm2;
+    std::set<size_t> result;
+    for (int k=0; k<vf.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(vf,k); it; ++it) {
+        if (it.row() == vindex)
+        {
+            result.insert(it.col());
+        }
+      }
+    } 
+    print_set(result);
+    return result;
+}
+// e as input
+std::set<size_t> DECOperators::get_incident_vertices_e(size_t eindex){
+    std::set<size_t> result;
+    for (int k=0; k<this->pos_bm1.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(this->pos_bm1,k); it; ++it) {
+        if (it.col() == eindex)
+        {
+            result.insert(it.row());
+        }
+      }
+    } 
+    print_set(result);
+    return result;
+}
+std::set<size_t> DECOperators::get_incident_faces_e(size_t eindex){
+    std::set<size_t> result;
+    for (int k=0; k<this->pos_bm2.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(this->pos_bm2,k); it; ++it) {
+        if (it.row() == eindex)
+        {
+            result.insert(it.col());
+        }
+      }
+    } 
+    print_set(result);
+    return result;
+}
 //
-std::set<size_t> DECOperators::vertices_of_diamond(size_t eindex){
+std::set<size_t> DECOperators::get_diamond_vertices_e(size_t eindex){
     SimplexSubset edges;
     edges.addEdge(eindex);
     SimplexSubset result = closure(star(edges));
@@ -250,6 +319,64 @@ std::set<size_t> DECOperators::vertices_of_diamond(size_t eindex){
     // ver.erase(this->E(eindex, 1));
     print_set(ver);
     return ver;
+}
+
+// f as input
+std::set<size_t> DECOperators::get_incident_vertices_f(size_t findex){
+    SparseMatrix<int> vf = this->pos_bm1 * this->pos_bm2;
+    std::set<size_t> result;
+    for (int k=0; k<vf.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(vf,k); it; ++it) {
+        if (it.col() == findex)
+        {
+            result.insert(it.row());
+        }
+      }
+    } 
+    print_set(result);
+    return result;
+}
+std::set<size_t> DECOperators::get_incident_edges_f(size_t findex){ 
+    std::set<size_t> result;
+    for (int k=0; k<this->pos_bm2.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(this->pos_bm2,k); it; ++it) {
+        if (it.col() == findex)
+        {
+            result.insert(it.row());
+        }
+      }
+    } 
+    print_set(result);
+    return result;
+}
+std::set<size_t> DECOperators::get_adjacent_faces_f(size_t findex){
+    SparseMatrix<int> ff = (this->pos_bm2).transpose()*this->pos_bm2;
+    std::set<size_t> result;
+    for (int k=0; k<ff.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(ff,k); it; ++it) {
+        if (it.row() == findex && it.col() != findex)
+        {
+            result.insert(it.col());
+        }
+      }
+    }
+    print_set(result);
+    return result;
+}
+
+std::set<size_t> DECOperators::get_adjacent_faces_f2(size_t findex){
+    SparseMatrix<int> ff = (this->pos_bm1*this->pos_bm2).transpose()*(this->pos_bm1*this->pos_bm2);
+    std::set<size_t> result;
+    for (int k=0; k<ff.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(ff,k); it; ++it) {
+        if (it.row() == findex && it.col() != findex)
+        {
+            result.insert(it.col());
+        }
+      }
+    }
+    print_set(result);
+    return result;
 }
 
 VectorXi DECOperators::buildVertexVector(const SimplexSubset& subset) const{

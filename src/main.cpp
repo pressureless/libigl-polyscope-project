@@ -184,10 +184,23 @@ void functionCallback() {
         redraw();
     }
 
-    if (ImGui::Button("vertices_of_diamond")) {
+    if (ImGui::Button("get_diamond_vertices_e")) {
         std::set<size_t> edges = polyscope::state::subset.edges;
         if( edges.size() == 1 ){
-            std::set<size_t> verts = SCO.vertices_of_diamond(*edges.begin());
+            std::set<size_t> verts = SCO.get_diamond_vertices_e(*edges.begin());
+            polyscope::state::subset.deleteAll();
+            polyscope::state::subset.addVertices(verts);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple edges selected"<<std::endl;
+        }
+    } 
+    if (ImGui::Button("get_incident_vertices_e")) {
+        std::set<size_t> edges = polyscope::state::subset.edges;
+        if( edges.size() == 1 ){
+            std::set<size_t> verts = SCO.get_incident_vertices_e(*edges.begin());
+            polyscope::state::subset.deleteAll();
             polyscope::state::subset.addVertices(verts);
             redraw();
         }
@@ -195,12 +208,100 @@ void functionCallback() {
             std::cout<<"Invalid input, multiple edges selected"<<std::endl;
         }
     }
+    if (ImGui::Button("get_incident_faces_e")) {
+        std::set<size_t> edges = polyscope::state::subset.edges;
+        if( edges.size() == 1 ){
+            std::set<size_t> f = SCO.get_incident_faces_e(*edges.begin());
+            polyscope::state::subset.deleteAll();
+            polyscope::state::subset.addFaces(f);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple edges selected"<<std::endl;
+        }
+    }
+    // f
+    if (ImGui::Button("get_incident_vertices_f")) {
+        std::set<size_t> faces = polyscope::state::subset.faces;
+        if( faces.size() == 1 ){
+            std::set<size_t> verts = SCO.get_incident_vertices_f(*faces.begin());
+            polyscope::state::subset.deleteAll();
+            polyscope::state::subset.addVertices(verts);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple faces selected"<<std::endl;
+        }
+    }
+    if (ImGui::Button("get_incident_edges_f")) { 
+        std::set<size_t> faces = polyscope::state::subset.faces;
+        if( faces.size() == 1 ){
+            std::set<size_t> edges = SCO.get_incident_edges_f(*faces.begin());
+            polyscope::state::subset.deleteAll();
+            polyscope::state::subset.addEdges(edges);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple faces selected"<<std::endl;
+        }
+    }
+    if (ImGui::Button("get_adjacent_faces_f")) {
+        std::set<size_t> faces = polyscope::state::subset.faces;
+        if( faces.size() == 1 ){
+            std::set<size_t> f = SCO.get_adjacent_faces_f(*faces.begin());
+            polyscope::state::subset.deleteAll();
+            polyscope::state::subset.addFaces(f);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple faces selected"<<std::endl;
+        }
+    }
+    if (ImGui::Button("get_adjacent_faces_f2")) {
+        std::set<size_t> faces = polyscope::state::subset.faces;
+        if( faces.size() == 1 ){
+            std::set<size_t> f = SCO.get_adjacent_faces_f2(*faces.begin());
+            polyscope::state::subset.deleteAll();
+            polyscope::state::subset.addFaces(f);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple faces selected"<<std::endl;
+        }
+    }
 
-    if (ImGui::Button("one_ring_vertices")) {
+    if (ImGui::Button("get_adjacent_vertices_v")) {
         std::set<size_t> vertices = polyscope::state::subset.vertices;
         if( vertices.size() == 1 && polyscope::state::subset.edges.size() == 0 && polyscope::state::subset.edges.size() == 0){
-            std::set<size_t> verts = SCO.one_ring_vertices(*vertices.begin());
+            std::set<size_t> verts = SCO.get_adjacent_vertices_v(*vertices.begin());
+            polyscope::state::subset.deleteAll();
             polyscope::state::subset.addVertices(verts);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple vertices selected"<<std::endl;
+        }
+    }
+
+    if (ImGui::Button("get_incident_faces_v")) {
+        std::set<size_t> vertices = polyscope::state::subset.vertices;
+        if( vertices.size() == 1 && polyscope::state::subset.edges.size() == 0 && polyscope::state::subset.edges.size() == 0){
+            std::set<size_t> faces = SCO.get_incident_faces_v(*vertices.begin());
+            polyscope::state::subset.deleteAll();
+            polyscope::state::subset.addFaces(faces);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple vertices selected"<<std::endl;
+        }
+    }
+
+    if (ImGui::Button("get_incident_edges_v")) {
+        std::set<size_t> vertices = polyscope::state::subset.vertices;
+        if( vertices.size() == 1 && polyscope::state::subset.edges.size() == 0 && polyscope::state::subset.edges.size() == 0){
+            std::set<size_t> edges = SCO.get_incident_edges_v(*vertices.begin());
+            polyscope::state::subset.deleteAll();
+            polyscope::state::subset.addEdges(edges);
             redraw();
         }
         else{
@@ -221,7 +322,15 @@ void functionCallback() {
 }
 
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) { 
+    // Eigen::MatrixXi T(2,4);
+    // T <<
+    // 0,1,2,3,
+    // 1,2,3,4;
+    // std::cout <<"original:\n"<< T << std::endl;
+    // DECOperators dec(T);
+
+    // return EXIT_SUCCESS;
     // Configure the argument parser
     args::ArgumentParser parser("15-458 HW0");
     args::Positional<std::string> inputFilename(parser, "mesh", "A mesh file.");
@@ -337,6 +446,7 @@ int main(int argc, char** argv) {
 
     // Give control to the polyscope gui
     polyscope::show();
+
 
     return EXIT_SUCCESS;
 }

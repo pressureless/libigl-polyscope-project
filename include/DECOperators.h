@@ -32,8 +32,19 @@ public:
     void build_boundary_mat2(); // F -> E, size: |E|x|F|, boundary of triangles
     void build_boundary_mat1(); // E -> V, size: |V|x|E|, boundary of edges
     // mesh API
-    std::set<size_t> one_ring_vertices(size_t vindex);
-    std::set<size_t> vertices_of_diamond(size_t eindex);
+    // v as input
+    std::set<size_t> get_adjacent_vertices_v(size_t vindex); 
+    std::set<size_t> get_incident_edges_v(size_t vindex); 
+    std::set<size_t> get_incident_faces_v(size_t vindex); 
+    // e as input
+    std::set<size_t> get_incident_vertices_e(size_t eindex); 
+    std::set<size_t> get_incident_faces_e(size_t eindex); 
+    std::set<size_t> get_diamond_vertices_e(size_t eindex);
+    // f as input
+    std::set<size_t> get_incident_vertices_f(size_t findex); 
+    std::set<size_t> get_incident_edges_f(size_t findex); 
+    std::set<size_t> get_adjacent_faces_f(size_t findex); 
+    std::set<size_t> get_adjacent_faces_f2(size_t findex); 
     // simplicial complex
     Eigen::VectorXi buildVertexVector(const SimplexSubset& subset) const;
     Eigen::VectorXi buildEdgeVector(const SimplexSubset& subset) const;
