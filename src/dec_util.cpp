@@ -111,7 +111,7 @@ RowVector sort_rvector(RowVector &source){
     return t.transpose();
 }
 
-RowVector permute_rvector(RowVector &source){
+RowVector permute_rvector(const RowVector &source){
     if (source.cols() > 0)
     {
         int min_index = 0;

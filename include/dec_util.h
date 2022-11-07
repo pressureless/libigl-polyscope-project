@@ -38,6 +38,8 @@ Vector sort_vector(Vector &source);
 
 RowVector sort_rvector(RowVector &source);
 
+RowVector permute_rvector(const RowVector &source);
+
 Matrix remove_duplicate_rows(Matrix source);
 
 Matrix preprocess_matrix(Matrix &source);

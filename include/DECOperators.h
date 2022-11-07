@@ -47,6 +47,8 @@ public:
     int nVertices() const;
     int nFaces() const;
     int nTets() const;
+    size_t get_edge_index(size_t i, size_t j, int &sign);
+    size_t get_face_index(size_t i, size_t j, size_t k, int &sign);
 // private:
     size_t num_v;
     Matrix T;

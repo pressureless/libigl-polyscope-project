@@ -184,6 +184,30 @@ void functionCallback() {
         redraw();
     }
 
+    if (ImGui::Button("vertices_of_diamond")) {
+        std::set<size_t> edges = polyscope::state::subset.edges;
+        if( edges.size() == 1 ){
+            std::set<size_t> verts = SCO.vertices_of_diamond(*edges.begin());
+            polyscope::state::subset.addVertices(verts);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple edges selected"<<std::endl;
+        }
+    }
+
+    if (ImGui::Button("one_ring_vertices")) {
+        std::set<size_t> vertices = polyscope::state::subset.vertices;
+        if( vertices.size() == 1 && polyscope::state::subset.edges.size() == 0 && polyscope::state::subset.edges.size() == 0){
+            std::set<size_t> verts = SCO.one_ring_vertices(*vertices.begin());
+            polyscope::state::subset.addVertices(verts);
+            redraw();
+        }
+        else{
+            std::cout<<"Invalid input, multiple vertices selected"<<std::endl;
+        }
+    }
+
     if (ImGui::Button("Face color")) {
         std::vector<std::array<double, 3>> fColor(meshF.rows());
         for (size_t iF = 0; iF < meshF.rows(); iF++) { 
@@ -228,8 +252,9 @@ int main(int argc, char** argv) {
     Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic > F = meshF.cast<size_t>();
     Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic >  FF = preprocess_matrix(F);
     meshF = FF.cast<int>();
+    std::cout<<"meshF:\n"<<meshF<<std::endl;
     SCO.initialize(F);
-    SCO.vertices_of_diamond(0);
+    // SCO.vertices_of_diamond(0);
     //
     // Load mesh
     // std::tie(mesh_uptr, geometry_uptr) = readManifoldSurfaceMesh(filepath);
