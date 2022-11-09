@@ -1,5 +1,5 @@
 //
-//  DECOperators.cpp
+//  TriangleMesh.cpp
 //  DEC
 //
 //  Created by pressure on 10/31/22.
@@ -10,28 +10,28 @@
 #include <vector>
 #include <algorithm> 
 #include "dec_util.h"
-#include "DECOperators.h"
+#include "TriangleMesh.h"
 using Eigen::VectorXi;
 using Eigen::MatrixXi;
 typedef Eigen::Matrix< size_t, Eigen::Dynamic, 1> Vector;
 typedef Eigen::Matrix< size_t, 1, Eigen::Dynamic> RowVector;
 typedef Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-DECOperators::DECOperators(){
+TriangleMesh::TriangleMesh(){
 
 }
-DECOperators::DECOperators(Eigen::MatrixXi &T){
+TriangleMesh::TriangleMesh(Eigen::MatrixXi &T){
     Matrix m = T.cast<size_t>();
     this->initialize(m);
 }
-DECOperators::DECOperators(Matrix &T){
+TriangleMesh::TriangleMesh(Matrix &T){
     this->initialize(T);
 }
-void DECOperators::initialize(Eigen::MatrixXi &T){
+void TriangleMesh::initialize(Eigen::MatrixXi &T){
     Matrix m = T.cast<size_t>();
     this->initialize(m);
 }
 
-void DECOperators::initialize(Matrix &T){
+void TriangleMesh::initialize(Matrix &T){
     std::cout<<"T cols:"<<T.cols()<<std::endl;
     this->T = preprocess_matrix(T);
     // std::cout<<"T:\n"<<this->T<<std::endl;
@@ -61,20 +61,20 @@ void DECOperators::initialize(Matrix &T){
     std::cout<<"Total vertices:"<<this->num_v<<", edges:"<<this->E.rows()<<", faces:"<<this->F.rows()<<", tets:"<<this->T.rows()<<std::endl;
 }
 
-int DECOperators::n_edges() const{
+int TriangleMesh::n_edges() const{
     return this->E.rows();
 }
-int DECOperators::n_vertices() const{
+int TriangleMesh::n_vertices() const{
     return this->num_v;
 }
-int DECOperators::n_faces() const{
+int TriangleMesh::n_faces() const{
     return this->F.rows();
 }
-int DECOperators::n_tets() const{
+int TriangleMesh::n_tets() const{
     return this->T.rows();
 }
 
-size_t DECOperators::get_edge_index(size_t i, size_t j, int &sign){
+size_t TriangleMesh::get_edge_index(size_t i, size_t j, int &sign){
     if (i < j)
     {
         sign = 1;
@@ -84,7 +84,7 @@ size_t DECOperators::get_edge_index(size_t i, size_t j, int &sign){
     return this->map_e[std::make_tuple(j, i)];
 }
 
-size_t DECOperators::get_face_index(size_t i, size_t j, size_t k, int &sign){
+size_t TriangleMesh::get_face_index(size_t i, size_t j, size_t k, int &sign){
     RowVector r(3); r << i, j, k;
     RowVector p = permute_rvector(r); // get sorted face
     // find orientation
@@ -99,7 +99,7 @@ size_t DECOperators::get_face_index(size_t i, size_t j, size_t k, int &sign){
     return this->map_f[std::make_tuple(p(0), p(2), p(1))];
 }
 
-void DECOperators::create_edges(){
+void TriangleMesh::create_edges(){
     Matrix E(6*T.rows(), 2);
     for (int i=0; i<this->T.rows(); i++) {
         Vector v0(2); v0 << this->T(i,0), this->T(i,1);
@@ -123,7 +123,7 @@ void DECOperators::create_edges(){
     }
 }
 
-void DECOperators::create_edges_from_faces(){
+void TriangleMesh::create_edges_from_faces(){
     Matrix E(3*this->F.rows(), 2);
     for (int i=0; i<this->F.rows(); i++) {
         Vector v0(2); v0 << this->F(i,0), this->F(i,1);
@@ -143,7 +143,7 @@ void DECOperators::create_edges_from_faces(){
 }
 
 
-void DECOperators::create_faces(){
+void TriangleMesh::create_faces(){
     Matrix F(4*T.rows(), 3);
     for (int i=0; i<this->T.rows(); i++) {
         Vector v0(3); v0 << this->T(i,0), this->T(i,1), this->T(i,2);
@@ -163,7 +163,7 @@ void DECOperators::create_faces(){
     }
 }
 
-void DECOperators::build_boundary_mat3(){
+void TriangleMesh::build_boundary_mat3(){
     this->bm3.resize(this->F.rows(), this->T.rows());
     std::vector<Eigen::Triplet<size_t> > tripletList;
     int sign = 1;
@@ -192,7 +192,7 @@ void DECOperators::build_boundary_mat3(){
     // std::cout<<"this->pos_bm3:\n"<<this->pos_bm3<<std::endl;
 }
 
-void DECOperators::build_boundary_mat2(){
+void TriangleMesh::build_boundary_mat2(){
     this->bm2.resize(this->E.rows(), this->F.rows());
     std::vector<Eigen::Triplet<size_t> > tripletList;
     int sign = 1;
@@ -217,7 +217,7 @@ void DECOperators::build_boundary_mat2(){
     // std::cout<<"this->pos_bm2:\n"<<this->pos_bm2<<std::endl;
 }
 
-void DECOperators::build_boundary_mat1(){
+void TriangleMesh::build_boundary_mat1(){
     this->bm1.resize(this->num_v, this->E.rows());
     std::vector<Eigen::Triplet<size_t> > tripletList;
     for(int i=0; i<this->E.rows(); i++){
@@ -231,7 +231,7 @@ void DECOperators::build_boundary_mat1(){
 }
 
 // v as input
-std::set<size_t> DECOperators::get_adjacent_vertices_v(size_t vindex){
+std::set<size_t> TriangleMesh::get_adjacent_vertices_v(size_t vindex){
     // simplex API
     // SimplexSubset verts;
     // verts.addVertex(vindex);
@@ -254,7 +254,7 @@ std::set<size_t> DECOperators::get_adjacent_vertices_v(size_t vindex){
     return result;
 }
 
-std::set<size_t> DECOperators::get_incident_edges_v(size_t vindex){
+std::set<size_t> TriangleMesh::get_incident_edges_v(size_t vindex){
     std::set<size_t> result;
     for (int k=0; k<this->pos_bm1.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(this->pos_bm1,k); it; ++it) {
@@ -268,7 +268,7 @@ std::set<size_t> DECOperators::get_incident_edges_v(size_t vindex){
     return result;
 }
 
-std::set<size_t> DECOperators::get_incident_faces_v(size_t vindex){
+std::set<size_t> TriangleMesh::get_incident_faces_v(size_t vindex){
     SparseMatrix<int> vf = this->pos_bm1 * this->pos_bm2;
     std::set<size_t> result;
     for (int k=0; k<vf.outerSize(); ++k){
@@ -283,7 +283,7 @@ std::set<size_t> DECOperators::get_incident_faces_v(size_t vindex){
     return result;
 }
 // e as input
-std::set<size_t> DECOperators::get_incident_vertices_e(size_t eindex){
+std::set<size_t> TriangleMesh::get_incident_vertices_e(size_t eindex){
     std::set<size_t> result;
     for (int k=0; k<this->pos_bm1.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(this->pos_bm1,k); it; ++it) {
@@ -296,7 +296,7 @@ std::set<size_t> DECOperators::get_incident_vertices_e(size_t eindex){
     print_set(result);
     return result;
 }
-std::set<size_t> DECOperators::get_incident_faces_e(size_t eindex){
+std::set<size_t> TriangleMesh::get_incident_faces_e(size_t eindex){
     std::set<size_t> result;
     for (int k=0; k<this->pos_bm2.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(this->pos_bm2,k); it; ++it) {
@@ -310,7 +310,7 @@ std::set<size_t> DECOperators::get_incident_faces_e(size_t eindex){
     return result;
 }
 //
-std::set<size_t> DECOperators::get_diamond_vertices_e(size_t eindex){
+std::set<size_t> TriangleMesh::get_diamond_vertices_e(size_t eindex){
     SimplexSubset edges;
     edges.addEdge(eindex);
     SimplexSubset result = closure(star(edges));
@@ -322,7 +322,7 @@ std::set<size_t> DECOperators::get_diamond_vertices_e(size_t eindex){
 }
 
 // f as input
-std::set<size_t> DECOperators::get_incident_vertices_f(size_t findex){
+std::set<size_t> TriangleMesh::get_incident_vertices_f(size_t findex){
     SparseMatrix<int> vf = this->pos_bm1 * this->pos_bm2;
     std::set<size_t> result;
     for (int k=0; k<vf.outerSize(); ++k){
@@ -336,7 +336,7 @@ std::set<size_t> DECOperators::get_incident_vertices_f(size_t findex){
     print_set(result);
     return result;
 }
-std::set<size_t> DECOperators::get_incident_edges_f(size_t findex){ 
+std::set<size_t> TriangleMesh::get_incident_edges_f(size_t findex){ 
     std::set<size_t> result;
     for (int k=0; k<this->pos_bm2.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(this->pos_bm2,k); it; ++it) {
@@ -349,7 +349,7 @@ std::set<size_t> DECOperators::get_incident_edges_f(size_t findex){
     print_set(result);
     return result;
 }
-std::set<size_t> DECOperators::get_adjacent_faces_f(size_t findex){
+std::set<size_t> TriangleMesh::get_adjacent_faces_f(size_t findex){
     SparseMatrix<int> ff = (this->pos_bm2).transpose()*this->pos_bm2;
     std::set<size_t> result;
     for (int k=0; k<ff.outerSize(); ++k){
@@ -364,7 +364,7 @@ std::set<size_t> DECOperators::get_adjacent_faces_f(size_t findex){
     return result;
 }
 
-std::set<size_t> DECOperators::get_adjacent_faces_f2(size_t findex){
+std::set<size_t> TriangleMesh::get_adjacent_faces_f2(size_t findex){
     SparseMatrix<int> ff = (this->pos_bm1*this->pos_bm2).transpose()*(this->pos_bm1*this->pos_bm2);
     std::set<size_t> result;
     for (int k=0; k<ff.outerSize(); ++k){
@@ -379,7 +379,7 @@ std::set<size_t> DECOperators::get_adjacent_faces_f2(size_t findex){
     return result;
 }
 
-VectorXi DECOperators::build_vertex_vector(const SimplexSubset& subset) const{
+VectorXi TriangleMesh::build_vertex_vector(const SimplexSubset& subset) const{
     VectorXi v = VectorXi::Zero(this->num_v);
     for (size_t idx : subset.vertices)
     {
@@ -388,7 +388,7 @@ VectorXi DECOperators::build_vertex_vector(const SimplexSubset& subset) const{
     return v;
 }
 
-VectorXi DECOperators::build_edge_vector(const SimplexSubset& subset) const{
+VectorXi TriangleMesh::build_edge_vector(const SimplexSubset& subset) const{
     VectorXi e = VectorXi::Zero(this->E.rows());
     for (auto idx : subset.edges)
     {
@@ -397,7 +397,7 @@ VectorXi DECOperators::build_edge_vector(const SimplexSubset& subset) const{
     return e;
 }
 
-VectorXi DECOperators::build_face_vector(const SimplexSubset& subset) const{
+VectorXi TriangleMesh::build_face_vector(const SimplexSubset& subset) const{
     VectorXi f = VectorXi::Zero(this->F.rows());
     for (size_t idx : subset.faces)
     {
@@ -405,8 +405,32 @@ VectorXi DECOperators::build_face_vector(const SimplexSubset& subset) const{
     }
     return f;
 }
+Eigen::VectorXi TriangleMesh::build_vertex_vector(const std::set<size_t>& vset) const{
+    VectorXi v = VectorXi::Zero(this->num_v);
+    for (size_t idx : vset)
+    {
+        v[idx] = 1;
+    }
+    return v;
+}
+Eigen::VectorXi TriangleMesh::build_edge_vector(const std::set<size_t>& eset) const{
+    VectorXi e = VectorXi::Zero(this->E.rows());
+    for (auto idx : eset)
+    {
+        e[idx] = 1;
+    }
+    return e;
+}
+Eigen::VectorXi TriangleMesh::build_face_vector(const std::set<size_t>& fset) const{
+    VectorXi f = VectorXi::Zero(this->F.rows());
+    for (size_t idx : fset)
+    {
+        f[idx] = 1;
+    }
+    return f;
+}
 
-SimplexSubset DECOperators::star(const SimplexSubset& subset) const{
+SimplexSubset TriangleMesh::star(const SimplexSubset& subset) const{
     SimplexSubset newSet = subset.deepCopy();
     VectorXi v = this->build_vertex_vector(subset);
     std::cout<<"v:"<<v<<std::endl;
@@ -434,7 +458,7 @@ SimplexSubset DECOperators::star(const SimplexSubset& subset) const{
     std::cout<<"extraF:"<<extraF<<std::endl;
     return newSet;
 }
-SimplexSubset DECOperators::closure(const SimplexSubset& subset) const{
+SimplexSubset TriangleMesh::closure(const SimplexSubset& subset) const{
     SimplexSubset newSet = subset.deepCopy();
     VectorXi f = this->build_face_vector(subset);
     VectorXi extraE = this->pos_bm2 * f;
@@ -456,16 +480,16 @@ SimplexSubset DECOperators::closure(const SimplexSubset& subset) const{
     }
     return newSet;
 }
-SimplexSubset DECOperators::link(const SimplexSubset& subset) const{
+SimplexSubset TriangleMesh::link(const SimplexSubset& subset) const{
     SimplexSubset newSet = this->closure(this->star(subset));
     newSet.deleteSubset(this->star(this->closure(subset)));
     return newSet;
 }
-bool DECOperators::is_complex(const SimplexSubset& subset) const{
+bool TriangleMesh::is_complex(const SimplexSubset& subset) const{
     SimplexSubset newSet = this->closure(subset);
     return newSet.equals(subset);
 }
-size_t DECOperators::is_pure_complex(const SimplexSubset& subset) const{
+size_t TriangleMesh::is_pure_complex(const SimplexSubset& subset) const{
     size_t degree = -1;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
     if (this->is_complex(subset))
@@ -537,7 +561,7 @@ size_t DECOperators::is_pure_complex(const SimplexSubset& subset) const{
     }
     return degree;
 } 
-SimplexSubset DECOperators::boundary(const SimplexSubset& subset) const{
+SimplexSubset TriangleMesh::boundary(const SimplexSubset& subset) const{
     SimplexSubset newSet;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
     if (this->is_pure_complex(subset))

@@ -21,7 +21,7 @@
 #include "imgui.h"
 
 #include "dec_util.h"
-#include "DECOperators.h"
+#include "TriangleMesh.h"
 #include <algorithm>
 
 // using namespace geometrycentral;
@@ -42,7 +42,7 @@ polyscope::SurfaceMesh* psMesh;
 std::string MESHNAME;
 
 // Some global variables
-DECOperators SCO;
+TriangleMesh SCO;
 bool isComplexResult = false;
 int isPureComplexResult = -1;
 double vertexRadius;
@@ -328,7 +328,7 @@ int main(int argc, char** argv) {
     // 0,1,2,3,
     // 1,2,3,4;
     // std::cout <<"original:\n"<< T << std::endl;
-    // DECOperators dec(T);
+    // TriangleMesh dec(T);
 
     // return EXIT_SUCCESS;
     // Configure the argument parser

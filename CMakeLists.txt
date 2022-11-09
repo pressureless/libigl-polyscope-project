@@ -83,7 +83,7 @@ add_subdirectory("deps/polyscope")
 # Create an executable
 set(SRCS 
   src/main.cpp
-  src/DECOperators.cpp
+  src/TriangleMesh.cpp
   src/dec_util.cpp
 )
 

@@ -1,12 +1,12 @@
 //
-//  DECOperators.h
+//  TriangleMesh.h
 //  DEC
 //
 //  Created by pressure on 10/31/22.
 //
 
-#ifndef DECOperators_h
-#define DECOperators_h
+#ifndef TriangleMesh_h
+#define TriangleMesh_h
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <map>
@@ -18,11 +18,11 @@ typedef std::tuple<size_t, size_t, size_t> key_f;
 typedef std::tuple<size_t, size_t> key_e;
 typedef Eigen::Matrix< size_t, Eigen::Dynamic, 1> Vector;
 typedef Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-class DECOperators {
+class TriangleMesh {
 public:
-    DECOperators(Eigen::MatrixXi &T);
-    DECOperators(Matrix &T);
-    DECOperators();
+    TriangleMesh(Eigen::MatrixXi &T);
+    TriangleMesh(Matrix &T);
+    TriangleMesh();
     void initialize(Eigen::MatrixXi &T);
     void initialize(Matrix &T);
     void create_edges();
@@ -49,6 +49,9 @@ public:
     Eigen::VectorXi build_vertex_vector(const SimplexSubset& subset) const;
     Eigen::VectorXi build_edge_vector(const SimplexSubset& subset) const;
     Eigen::VectorXi build_face_vector(const SimplexSubset& subset) const;
+    Eigen::VectorXi build_vertex_vector(const std::set<size_t>& vset) const;
+    Eigen::VectorXi build_edge_vector(const std::set<size_t>& eset) const;
+    Eigen::VectorXi build_face_vector(const std::set<size_t>& fset) const;
     SimplexSubset star(const SimplexSubset& subset) const;
     SimplexSubset closure(const SimplexSubset& subset) const;
     SimplexSubset link(const SimplexSubset& subset) const;
@@ -77,4 +80,4 @@ public:
     Eigen::SparseMatrix<int> pos_bm3; // |F|x|T|
 };
 
-#endif /* DECOperators_h */
+#endif /* TriangleMesh_h */
