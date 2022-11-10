@@ -12,9 +12,9 @@
 // using Eigen::Matrix;
 // using Eigen::Vector;
 
-typedef Eigen::Matrix< size_t, Eigen::Dynamic, 1> Vector;
-typedef Eigen::Matrix< size_t, 1, Eigen::Dynamic> RowVector;
-typedef Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+typedef Eigen::Matrix< int, Eigen::Dynamic, 1> Vector;
+typedef Eigen::Matrix< int, 1, Eigen::Dynamic> RowVector;
+typedef Eigen::Matrix< int, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 
 bool compare_vec(const Matrix &fir, const Matrix &sec){
     assert(fir.rows() == sec.rows() && fir.rows() == 1);
@@ -115,7 +115,7 @@ RowVector permute_rvector(const RowVector &source){
     if (source.cols() > 0)
     {
         int min_index = 0;
-        size_t cur_val = source(0);
+        int cur_val = source(0);
         for (int i = 1; i < source.cols(); ++i)
         {
             if (source(i)<cur_val)
@@ -169,14 +169,14 @@ Matrix preprocess_matrix(Matrix &source){
 }
 
 
-void print_set(const std::set<size_t>& source){
-    for (std::set<size_t>::iterator it = source.begin(); it != source.end(); ++it) {
+void print_set(const std::set<int>& source){
+    for (std::set<int>::iterator it = source.begin(); it != source.end(); ++it) {
         std::cout << *it << ", ";
     }
     std::cout << std::endl;
 } 
 
-void print_vec(const std::vector<size_t>& source){
+void print_vec(const std::vector<int>& source){
     for (int i=0; i<source.size(); ++i) {
         std::cout << source[i] << ", ";
     }

@@ -14,9 +14,9 @@
 // using Eigen::Matrix;
 // using Eigen::Vector;
 
-typedef Eigen::Matrix< size_t, Eigen::Dynamic, 1> Vector;
-typedef Eigen::Matrix< size_t, 1, Eigen::Dynamic> RowVector;
-typedef Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+typedef Eigen::Matrix< int, Eigen::Dynamic, 1> Vector;
+typedef Eigen::Matrix< int, 1, Eigen::Dynamic> RowVector;
+typedef Eigen::Matrix< int, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 
 bool compare_vec(const Matrix &fir, const Matrix &sec);
 
@@ -44,6 +44,6 @@ Matrix remove_duplicate_rows(Matrix source);
 
 Matrix preprocess_matrix(Matrix &source);
 
-void print_set(const std::set<size_t>& source);
+void print_set(const std::set<int>& source);
 
-void print_vec(const std::vector<size_t>& source);
+void print_vec(const std::vector<int>& source);

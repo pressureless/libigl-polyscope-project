@@ -13,22 +13,14 @@
 #include "TriangleMesh.h"
 using Eigen::VectorXi;
 using Eigen::MatrixXi;
-typedef Eigen::Matrix< size_t, Eigen::Dynamic, 1> Vector;
-typedef Eigen::Matrix< size_t, 1, Eigen::Dynamic> RowVector;
-typedef Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+// typedef Eigen::Matrix< int, Eigen::Dynamic, 1> Vector;
+// typedef Eigen::Matrix< int, 1, Eigen::Dynamic> RowVector;
+// typedef Eigen::Matrix< int, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 TriangleMesh::TriangleMesh(){
 
 }
-TriangleMesh::TriangleMesh(Eigen::MatrixXi &T){
-    Matrix m = T.cast<size_t>();
-    this->initialize(m);
-}
 TriangleMesh::TriangleMesh(Matrix &T){
     this->initialize(T);
-}
-void TriangleMesh::initialize(Eigen::MatrixXi &T){
-    Matrix m = T.cast<size_t>();
-    this->initialize(m);
 }
 
 void TriangleMesh::initialize(Matrix &T){
@@ -74,7 +66,7 @@ int TriangleMesh::n_tets() const{
     return this->T.rows();
 }
 
-size_t TriangleMesh::get_edge_index(size_t i, size_t j, int &sign){
+int TriangleMesh::get_edge_index(int i, int j, int &sign){
     if (i < j)
     {
         sign = 1;
@@ -84,7 +76,7 @@ size_t TriangleMesh::get_edge_index(size_t i, size_t j, int &sign){
     return this->map_e[std::make_tuple(j, i)];
 }
 
-size_t TriangleMesh::get_face_index(size_t i, size_t j, size_t k, int &sign){
+int TriangleMesh::get_face_index(int i, int j, int k, int &sign){
     RowVector r(3); r << i, j, k;
     RowVector p = permute_rvector(r); // get sorted face
     // find orientation
@@ -119,7 +111,7 @@ void TriangleMesh::create_edges(){
     std::cout<<"this->E:\n"<<this->E<<std::endl;
     // create the mapping
     for (int i=0; i<this->E.rows(); i++) {
-        this->map_e.insert(std::pair<key_e, size_t>(std::make_tuple(this->E(i,0), this->E(i,1)), i));
+        this->map_e.insert(std::pair<key_e, int>(std::make_tuple(this->E(i,0), this->E(i,1)), i));
     }
 }
 
@@ -138,7 +130,7 @@ void TriangleMesh::create_edges_from_faces(){
     std::cout<<"this->E:\n"<<this->E<<std::endl;
     // create the mapping
     for (int i=0; i<this->E.rows(); i++) {
-        this->map_e.insert(std::pair<key_e, size_t>(std::make_tuple(this->E(i,0), this->E(i,1)), i));
+        this->map_e.insert(std::pair<key_e, int>(std::make_tuple(this->E(i,0), this->E(i,1)), i));
     }
 }
 
@@ -159,32 +151,32 @@ void TriangleMesh::create_faces(){
     std::cout<<"this->F:\n"<<this->F<<std::endl;
     // create the mapping
     for (int i=0; i<this->F.rows(); i++) {
-        this->map_f.insert(std::pair<key_f, size_t>(std::make_tuple(this->F(i,0), this->F(i,1), this->F(i,2)), i));
+        this->map_f.insert(std::pair<key_f, int>(std::make_tuple(this->F(i,0), this->F(i,1), this->F(i,2)), i));
     }
 }
 
 void TriangleMesh::build_boundary_mat3(){
     this->bm3.resize(this->F.rows(), this->T.rows());
-    std::vector<Eigen::Triplet<size_t> > tripletList;
+    std::vector<Eigen::Triplet<int> > tripletList;
     int sign = 1;
     // The faces of a tet +(t0,t1,t2,t3) 
     for(int i=0; i<this->T.rows(); i++){
         // −(t0,t1,t2)
-        size_t idx = get_face_index(this->T(i,0), this->T(i,1), this->T(i,2), sign);
-        tripletList.push_back(Eigen::Triplet<size_t>(idx, i, -sign));
+        int idx = get_face_index(this->T(i,0), this->T(i,1), this->T(i,2), sign);
+        tripletList.push_back(Eigen::Triplet<int>(idx, i, -sign));
         // +(t0,t1,t3)
         idx = get_face_index(this->T(i,0), this->T(i,1), this->T(i,3), sign);
-        tripletList.push_back(Eigen::Triplet<size_t>(idx, i, sign));
+        tripletList.push_back(Eigen::Triplet<int>(idx, i, sign));
         // −(t0,t2,t3)
         idx = get_face_index(this->T(i,0), this->T(i,2), this->T(i,3), sign);
-        tripletList.push_back(Eigen::Triplet<size_t>(idx, i, -sign));
+        tripletList.push_back(Eigen::Triplet<int>(idx, i, -sign));
         // +(t1,t2,t3)
         idx = get_face_index(this->T(i,1), this->T(i,2), this->T(i,3), sign);
-        tripletList.push_back(Eigen::Triplet<size_t>(idx, i, sign));
-        // tripletList.push_back(Eigen::Triplet<size_t>(this->map_f[std::make_tuple(this->T(i,0), this->T(i,1), this->T(i,2))], i, -1));
-        // tripletList.push_back(Eigen::Triplet<size_t>(this->map_f[std::make_tuple(this->T(i,0), this->T(i,1), this->T(i,3))], i, 1));
-        // tripletList.push_back(Eigen::Triplet<size_t>(this->map_f[std::make_tuple(this->T(i,0), this->T(i,2), this->T(i,3))], i, -1));
-        // tripletList.push_back(Eigen::Triplet<size_t>(this->map_f[std::make_tuple(this->T(i,1), this->T(i,2), this->T(i,3))], i, 1));
+        tripletList.push_back(Eigen::Triplet<int>(idx, i, sign));
+        // tripletList.push_back(Eigen::Triplet<int>(this->map_f[std::make_tuple(this->T(i,0), this->T(i,1), this->T(i,2))], i, -1));
+        // tripletList.push_back(Eigen::Triplet<int>(this->map_f[std::make_tuple(this->T(i,0), this->T(i,1), this->T(i,3))], i, 1));
+        // tripletList.push_back(Eigen::Triplet<int>(this->map_f[std::make_tuple(this->T(i,0), this->T(i,2), this->T(i,3))], i, -1));
+        // tripletList.push_back(Eigen::Triplet<int>(this->map_f[std::make_tuple(this->T(i,1), this->T(i,2), this->T(i,3))], i, 1));
     }
     this->bm3.setFromTriplets(tripletList.begin(), tripletList.end());
     this->pos_bm3 = this->bm3.cwiseAbs();
@@ -194,22 +186,22 @@ void TriangleMesh::build_boundary_mat3(){
 
 void TriangleMesh::build_boundary_mat2(){
     this->bm2.resize(this->E.rows(), this->F.rows());
-    std::vector<Eigen::Triplet<size_t> > tripletList;
+    std::vector<Eigen::Triplet<int> > tripletList;
     int sign = 1;
     // The faces of a triangle +(f0,f1,f2)
     for(int i=0; i<this->F.rows(); i++){
         // +(f0,f1)
-        size_t idx = get_edge_index(this->F(i,0), this->F(i,1), sign);
-        tripletList.push_back(Eigen::Triplet<size_t>(idx, i, sign));
+        int idx = get_edge_index(this->F(i,0), this->F(i,1), sign);
+        tripletList.push_back(Eigen::Triplet<int>(idx, i, sign));
         // −(f0,f2)
         idx = get_edge_index(this->F(i,0), this->F(i,2), sign);
-        tripletList.push_back(Eigen::Triplet<size_t>(idx, i, -sign));
+        tripletList.push_back(Eigen::Triplet<int>(idx, i, -sign));
         // +(f1, f2)
         idx = get_edge_index(this->F(i,1), this->F(i,2), sign);
-        tripletList.push_back(Eigen::Triplet<size_t>(idx, i, sign));
-        // tripletList.push_back(Eigen::Triplet<size_t>(this->map_e[std::make_tuple(this->F(i,0), this->F(i,1))], i, 1));
-        // tripletList.push_back(Eigen::Triplet<size_t>(this->map_e[std::make_tuple(this->F(i,0), this->F(i,2))], i, -1));
-        // tripletList.push_back(Eigen::Triplet<size_t>(this->map_e[std::make_tuple(this->F(i,1), this->F(i,2))], i, 1));
+        tripletList.push_back(Eigen::Triplet<int>(idx, i, sign));
+        // tripletList.push_back(Eigen::Triplet<int>(this->map_e[std::make_tuple(this->F(i,0), this->F(i,1))], i, 1));
+        // tripletList.push_back(Eigen::Triplet<int>(this->map_e[std::make_tuple(this->F(i,0), this->F(i,2))], i, -1));
+        // tripletList.push_back(Eigen::Triplet<int>(this->map_e[std::make_tuple(this->F(i,1), this->F(i,2))], i, 1));
     }
     this->bm2.setFromTriplets(tripletList.begin(), tripletList.end());
     this->pos_bm2 = this->bm2.cwiseAbs();
@@ -219,10 +211,10 @@ void TriangleMesh::build_boundary_mat2(){
 
 void TriangleMesh::build_boundary_mat1(){
     this->bm1.resize(this->num_v, this->E.rows());
-    std::vector<Eigen::Triplet<size_t> > tripletList;
+    std::vector<Eigen::Triplet<int> > tripletList;
     for(int i=0; i<this->E.rows(); i++){
-        tripletList.push_back(Eigen::Triplet<size_t>(this->E(i,0), i, -1));
-        tripletList.push_back(Eigen::Triplet<size_t>(this->E(i,1), i, 1));
+        tripletList.push_back(Eigen::Triplet<int>(this->E(i,0), i, -1));
+        tripletList.push_back(Eigen::Triplet<int>(this->E(i,1), i, 1));
     }
     this->bm1.setFromTriplets(tripletList.begin(), tripletList.end());
     this->pos_bm1 = this->bm1.cwiseAbs();
@@ -231,17 +223,17 @@ void TriangleMesh::build_boundary_mat1(){
 }
 
 // v as input
-std::set<size_t> TriangleMesh::get_adjacent_vertices_v(size_t vindex){
+std::set<int> TriangleMesh::get_adjacent_vertices_v(int vindex){
     // simplex API
     // SimplexSubset verts;
     // verts.addVertex(vindex);
     // SimplexSubset result = link(verts);
-    // std::set<size_t> neighbors = result.vertices;
+    // std::set<int> neighbors = result.vertices;
     // print_set(neighbors);
     // return neighbors;
     // matrix API
     SparseMatrix<int> vv = this->pos_bm1 * this->pos_bm1.transpose();
-    std::set<size_t> result;
+    std::set<int> result;
     for (int k=0; k<vv.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(vv,k); it; ++it) {
         if (it.row() == vindex && it.col() != vindex)
@@ -254,8 +246,8 @@ std::set<size_t> TriangleMesh::get_adjacent_vertices_v(size_t vindex){
     return result;
 }
 
-std::set<size_t> TriangleMesh::get_incident_edges_v(size_t vindex){
-    std::set<size_t> result;
+std::set<int> TriangleMesh::get_incident_edges_v(int vindex){
+    std::set<int> result;
     for (int k=0; k<this->pos_bm1.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(this->pos_bm1,k); it; ++it) {
         if (it.row() == vindex)
@@ -268,9 +260,9 @@ std::set<size_t> TriangleMesh::get_incident_edges_v(size_t vindex){
     return result;
 }
 
-std::set<size_t> TriangleMesh::get_incident_faces_v(size_t vindex){
+std::set<int> TriangleMesh::get_incident_faces_v(int vindex){
     SparseMatrix<int> vf = this->pos_bm1 * this->pos_bm2;
-    std::set<size_t> result;
+    std::set<int> result;
     for (int k=0; k<vf.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(vf,k); it; ++it) {
         if (it.row() == vindex)
@@ -283,8 +275,8 @@ std::set<size_t> TriangleMesh::get_incident_faces_v(size_t vindex){
     return result;
 }
 // e as input
-std::set<size_t> TriangleMesh::get_incident_vertices_e(size_t eindex){
-    std::set<size_t> result;
+std::set<int> TriangleMesh::get_incident_vertices_e(int eindex){
+    std::set<int> result;
     for (int k=0; k<this->pos_bm1.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(this->pos_bm1,k); it; ++it) {
         if (it.col() == eindex)
@@ -296,8 +288,8 @@ std::set<size_t> TriangleMesh::get_incident_vertices_e(size_t eindex){
     print_set(result);
     return result;
 }
-std::set<size_t> TriangleMesh::get_incident_faces_e(size_t eindex){
-    std::set<size_t> result;
+std::set<int> TriangleMesh::get_incident_faces_e(int eindex){
+    std::set<int> result;
     for (int k=0; k<this->pos_bm2.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(this->pos_bm2,k); it; ++it) {
         if (it.row() == eindex)
@@ -310,21 +302,68 @@ std::set<size_t> TriangleMesh::get_incident_faces_e(size_t eindex){
     return result;
 }
 //
-std::set<size_t> TriangleMesh::get_diamond_vertices_e(size_t eindex){
+std::set<int> TriangleMesh::get_diamond_vertices_e(int eindex){
     SimplexSubset edges;
     edges.addEdge(eindex);
     SimplexSubset result = closure(star(edges));
-    std::set<size_t> ver = result.vertices;
+    std::set<int> ver = result.vertices;
     // ver.erase(this->E(eindex, 0));
     // ver.erase(this->E(eindex, 1));
     print_set(ver);
     return ver;
 }
 
+int TriangleMesh::get_opposite_vertex(const RowVector& f, int start, int end){
+    int res = 0;
+    for (int i = 0; i < f.cols(); ++i)
+    {
+        if (f(i) != start && f(i) != end)
+        {
+            res = f(i);
+            break;
+        }
+    }
+    return res;
+}
+
+
+std::tuple< int, int > TriangleMesh::get_diamond_vertices_e(int start, int end){
+    key_e key = std::make_tuple(start, end);
+    bool reverse = false;
+    auto search = this->map_e.find(key);
+    if (search == this->map_e.end()){
+        search = this->map_e.find(std::make_tuple(end, start));
+        reverse = true;
+    }
+    int index = search->second;
+    int first_face = 0;
+    int second_face = 0;
+    for (int k=0; k<this->bm2.outerSize(); ++k){
+        for (SparseMatrix<int>::InnerIterator it(this->bm2,k); it; ++it) {
+            if (it.row() == index)
+            {
+                if (it.value() == 1)
+                {
+                    first_face = get_opposite_vertex(this->F.row(it.col()), start, end);
+                }
+                else if (it.value() == -1)
+                {
+                    second_face = get_opposite_vertex(this->F.row(it.col()), start, end);
+                }
+            }
+      }
+    } 
+    if (reverse)
+    {
+        return std::tuple<int, int>{second_face, first_face};
+    }
+    return std::tuple<int, int>{first_face, second_face};
+}
+
 // f as input
-std::set<size_t> TriangleMesh::get_incident_vertices_f(size_t findex){
+std::set<int> TriangleMesh::get_incident_vertices_f(int findex){
     SparseMatrix<int> vf = this->pos_bm1 * this->pos_bm2;
-    std::set<size_t> result;
+    std::set<int> result;
     for (int k=0; k<vf.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(vf,k); it; ++it) {
         if (it.col() == findex)
@@ -336,8 +375,8 @@ std::set<size_t> TriangleMesh::get_incident_vertices_f(size_t findex){
     print_set(result);
     return result;
 }
-std::set<size_t> TriangleMesh::get_incident_edges_f(size_t findex){ 
-    std::set<size_t> result;
+std::set<int> TriangleMesh::get_incident_edges_f(int findex){ 
+    std::set<int> result;
     for (int k=0; k<this->pos_bm2.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(this->pos_bm2,k); it; ++it) {
         if (it.col() == findex)
@@ -349,9 +388,9 @@ std::set<size_t> TriangleMesh::get_incident_edges_f(size_t findex){
     print_set(result);
     return result;
 }
-std::set<size_t> TriangleMesh::get_adjacent_faces_f(size_t findex){
+std::set<int> TriangleMesh::get_adjacent_faces_f(int findex){
     SparseMatrix<int> ff = (this->pos_bm2).transpose()*this->pos_bm2;
-    std::set<size_t> result;
+    std::set<int> result;
     for (int k=0; k<ff.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(ff,k); it; ++it) {
         if (it.row() == findex && it.col() != findex)
@@ -364,9 +403,9 @@ std::set<size_t> TriangleMesh::get_adjacent_faces_f(size_t findex){
     return result;
 }
 
-std::set<size_t> TriangleMesh::get_adjacent_faces_f2(size_t findex){
+std::set<int> TriangleMesh::get_adjacent_faces_f2(int findex){
     SparseMatrix<int> ff = (this->pos_bm1*this->pos_bm2).transpose()*(this->pos_bm1*this->pos_bm2);
-    std::set<size_t> result;
+    std::set<int> result;
     for (int k=0; k<ff.outerSize(); ++k){
       for (SparseMatrix<int>::InnerIterator it(ff,k); it; ++it) {
         if (it.row() == findex && it.col() != findex)
@@ -381,7 +420,7 @@ std::set<size_t> TriangleMesh::get_adjacent_faces_f2(size_t findex){
 
 VectorXi TriangleMesh::build_vertex_vector(const SimplexSubset& subset) const{
     VectorXi v = VectorXi::Zero(this->num_v);
-    for (size_t idx : subset.vertices)
+    for (int idx : subset.vertices)
     {
         v[idx] = 1;
     }
@@ -399,21 +438,21 @@ VectorXi TriangleMesh::build_edge_vector(const SimplexSubset& subset) const{
 
 VectorXi TriangleMesh::build_face_vector(const SimplexSubset& subset) const{
     VectorXi f = VectorXi::Zero(this->F.rows());
-    for (size_t idx : subset.faces)
+    for (int idx : subset.faces)
     {
         f[idx] = 1;
     }
     return f;
 }
-Eigen::VectorXi TriangleMesh::build_vertex_vector(const std::set<size_t>& vset) const{
+Eigen::VectorXi TriangleMesh::build_vertex_vector(const std::set<int>& vset) const{
     VectorXi v = VectorXi::Zero(this->num_v);
-    for (size_t idx : vset)
+    for (int idx : vset)
     {
         v[idx] = 1;
     }
     return v;
 }
-Eigen::VectorXi TriangleMesh::build_edge_vector(const std::set<size_t>& eset) const{
+Eigen::VectorXi TriangleMesh::build_edge_vector(const std::set<int>& eset) const{
     VectorXi e = VectorXi::Zero(this->E.rows());
     for (auto idx : eset)
     {
@@ -421,9 +460,9 @@ Eigen::VectorXi TriangleMesh::build_edge_vector(const std::set<size_t>& eset) co
     }
     return e;
 }
-Eigen::VectorXi TriangleMesh::build_face_vector(const std::set<size_t>& fset) const{
+Eigen::VectorXi TriangleMesh::build_face_vector(const std::set<int>& fset) const{
     VectorXi f = VectorXi::Zero(this->F.rows());
-    for (size_t idx : fset)
+    for (int idx : fset)
     {
         f[idx] = 1;
     }
@@ -440,7 +479,7 @@ SimplexSubset TriangleMesh::star(const SimplexSubset& subset) const{
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
     std::cout<<"fv:"<<fv<<std::endl;
     VectorXi extraE = this->pos_bm1.transpose() * v;
-    for (size_t i = 0; i < extraE.size(); ++i)
+    for (int i = 0; i < extraE.size(); ++i)
     {
         if (extraE[i])
         {
@@ -448,7 +487,7 @@ SimplexSubset TriangleMesh::star(const SimplexSubset& subset) const{
         }
     }
     VectorXi extraF = this->pos_bm2.transpose() * e + fv * v;
-    for (size_t i = 0; i < extraF.size(); ++i)
+    for (int i = 0; i < extraF.size(); ++i)
     {
         if (extraF[i])
         {
@@ -462,7 +501,7 @@ SimplexSubset TriangleMesh::closure(const SimplexSubset& subset) const{
     SimplexSubset newSet = subset.deepCopy();
     VectorXi f = this->build_face_vector(subset);
     VectorXi extraE = this->pos_bm2 * f;
-    for (size_t i = 0; i < extraE.size(); ++i)
+    for (int i = 0; i < extraE.size(); ++i)
     {
         if (extraE[i])
         {
@@ -471,7 +510,7 @@ SimplexSubset TriangleMesh::closure(const SimplexSubset& subset) const{
     }
     VectorXi e = this->build_edge_vector(newSet);
     VectorXi extraV = this->pos_bm1 * e;
-    for (size_t i = 0; i < extraV.size(); ++i)
+    for (int i = 0; i < extraV.size(); ++i)
     {
         if (extraV[i])
         {
@@ -489,8 +528,8 @@ bool TriangleMesh::is_complex(const SimplexSubset& subset) const{
     SimplexSubset newSet = this->closure(subset);
     return newSet.equals(subset);
 }
-size_t TriangleMesh::is_pure_complex(const SimplexSubset& subset) const{
-    size_t degree = -1;
+int TriangleMesh::is_pure_complex(const SimplexSubset& subset) const{
+    int degree = -1;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
     if (this->is_complex(subset))
     {
@@ -498,10 +537,10 @@ size_t TriangleMesh::is_pure_complex(const SimplexSubset& subset) const{
         {
             degree = 2;
             // check edges
-            for (size_t e : subset.edges)
+            for (int e : subset.edges)
             {
                 bool found = false;
-                for (size_t f : subset.faces)
+                for (int f : subset.faces)
                 {
                     if (this->pos_bm2.coeff(e, f) > 0)
                     {
@@ -516,10 +555,10 @@ size_t TriangleMesh::is_pure_complex(const SimplexSubset& subset) const{
                 }
             }
             // check vertices
-            for (size_t v : subset.vertices)
+            for (int v : subset.vertices)
             {
                 bool found = false;
-                for (size_t f : subset.faces)
+                for (int f : subset.faces)
                 {
                     if (fv.coeff(f, v) > 0)
                     {
@@ -537,10 +576,10 @@ size_t TriangleMesh::is_pure_complex(const SimplexSubset& subset) const{
         else if(subset.edges.size() > 0){
             degree = 1;
             // check vertices
-            for (size_t v : subset.vertices)
+            for (int v : subset.vertices)
             {
                 bool found = false;
-                for (size_t e : subset.edges)
+                for (int e : subset.edges)
                 {
                     if (this->pos_bm1.coeff(v, e) > 0)
                     {
@@ -567,10 +606,10 @@ SimplexSubset TriangleMesh::boundary(const SimplexSubset& subset) const{
     if (this->is_pure_complex(subset))
     {
         // check edges
-        for (size_t e : subset.edges)
+        for (int e : subset.edges)
         {
-            size_t degree = 0;
-            for (size_t f : subset.faces)
+            int degree = 0;
+            for (int f : subset.faces)
             {
                 if (this->pos_bm2.coeff(e, f) > 0)
                 {
@@ -583,17 +622,17 @@ SimplexSubset TriangleMesh::boundary(const SimplexSubset& subset) const{
             }
         }
         // check vertices
-        for (size_t v : subset.vertices)
+        for (int v : subset.vertices)
         {
-            size_t degree = 0;
-            for (size_t f : subset.faces)
+            int degree = 0;
+            for (int f : subset.faces)
             {
                 if (fv.coeff(f, v) > 0)
                 {
                     degree++;
                 }
             }
-            for (size_t e : subset.edges)
+            for (int e : subset.edges)
             {
                 if (this->pos_bm1.coeff(v, e) > 0)
                 {
