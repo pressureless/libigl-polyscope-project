@@ -28,8 +28,8 @@
 // using namespace geometrycentral::surface;
 Eigen::MatrixXd meshV;
 Eigen::MatrixXi meshF;
-std::vector<size_t> edgeIndices;
-std::vector<size_t> revEdgeIndices;
+std::vector<int> edgeIndices;
+std::vector<int> revEdgeIndices;
 // == Geometry-central data
 // std::unique_ptr<ManifoldSurfaceMesh> mesh_uptr;
 // std::unique_ptr<VertexPositionGeometry> geometry_uptr;
@@ -75,12 +75,12 @@ void flipZ() {
  */
 void showSelected() {
 
-    print_vec(psMesh->edgePerm);
+    // print_vec(psMesh->edgePerm);
     // Show selected vertices. 
     Eigen::MatrixXd vertPos(polyscope::state::subset.vertices.size(), 3);
-    std::vector<std::array<size_t, 2>> vertInd;
+    std::vector<std::array<int, 2>> vertInd;
     int idx = 0;
-    for (std::set<size_t>::iterator it = polyscope::state::subset.vertices.begin();
+    for (std::set<int>::iterator it = polyscope::state::subset.vertices.begin();
         it != polyscope::state::subset.vertices.end(); ++it) {
         int cur = *it;
         vertPos.row(idx) = meshV.row(cur);
@@ -95,8 +95,8 @@ void showSelected() {
     // std::vector<Vector3> edgePos;
     idx = 0;
     Eigen::MatrixXd edgePos(polyscope::state::subset.edges.size()*2, 3);
-    std::vector<std::array<size_t, 2>> edgeInd;
-    for (std::set<size_t>::iterator it = polyscope::state::subset.edges.begin();
+    std::vector<std::array<int, 2>> edgeInd;
+    for (std::set<int>::iterator it = polyscope::state::subset.edges.begin();
          it != polyscope::state::subset.edges.end(); ++it) {
         int cur = *it;
         int fir = SCO.E(cur, 0);
@@ -104,7 +104,7 @@ void showSelected() {
         // std::cout<<"fir:"<<fir<<", sec:"<<sec<<std::endl;
         edgePos.row(idx) = meshV.row(fir); 
         edgePos.row(idx+1) = meshV.row(sec);  
-        size_t i = idx;
+        int i = idx;
         edgeInd.push_back({i, i + 1});
         idx += 2; 
     }
@@ -115,10 +115,10 @@ void showSelected() {
 
 //     // Show selected faces.
     std::vector<std::array<double, 3>> faceColors(SCO.n_faces());
-    for (size_t i = 0; i < SCO.n_faces(); i++) {
+    for (int i = 0; i < SCO.n_faces(); i++) {
         faceColors[i] = BLUE;
     }
-    for (std::set<size_t>::iterator it = polyscope::state::subset.faces.begin();
+    for (std::set<int>::iterator it = polyscope::state::subset.faces.begin();
          it != polyscope::state::subset.faces.end(); ++it) {
         faceColors[*it] = ORANGE;
     }
@@ -131,8 +131,9 @@ void redraw() {
     polyscope::requestRedraw();
 }
 
-std::vector<size_t> getMapping(){
-    return psMesh->edgePerm;
+std::vector<int> getMapping(){
+    std::vector<int> intVec(psMesh->edgePerm.begin(), psMesh->edgePerm.end());
+    return intVec;
 }
 
 /*
@@ -185,9 +186,9 @@ void functionCallback() {
     }
 
     if (ImGui::Button("get_diamond_vertices_e")) {
-        std::set<size_t> edges = polyscope::state::subset.edges;
+        std::set<int> edges = polyscope::state::subset.edges;
         if( edges.size() == 1 ){
-            std::set<size_t> verts = SCO.get_diamond_vertices_e(*edges.begin());
+            std::set<int> verts = SCO.get_diamond_vertices_e(*edges.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addVertices(verts);
             redraw();
@@ -197,9 +198,9 @@ void functionCallback() {
         }
     } 
     if (ImGui::Button("get_incident_vertices_e")) {
-        std::set<size_t> edges = polyscope::state::subset.edges;
+        std::set<int> edges = polyscope::state::subset.edges;
         if( edges.size() == 1 ){
-            std::set<size_t> verts = SCO.get_incident_vertices_e(*edges.begin());
+            std::set<int> verts = SCO.get_incident_vertices_e(*edges.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addVertices(verts);
             redraw();
@@ -209,9 +210,9 @@ void functionCallback() {
         }
     }
     if (ImGui::Button("get_incident_faces_e")) {
-        std::set<size_t> edges = polyscope::state::subset.edges;
+        std::set<int> edges = polyscope::state::subset.edges;
         if( edges.size() == 1 ){
-            std::set<size_t> f = SCO.get_incident_faces_e(*edges.begin());
+            std::set<int> f = SCO.get_incident_faces_e(*edges.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addFaces(f);
             redraw();
@@ -222,9 +223,9 @@ void functionCallback() {
     }
     // f
     if (ImGui::Button("get_incident_vertices_f")) {
-        std::set<size_t> faces = polyscope::state::subset.faces;
+        std::set<int> faces = polyscope::state::subset.faces;
         if( faces.size() == 1 ){
-            std::set<size_t> verts = SCO.get_incident_vertices_f(*faces.begin());
+            std::set<int> verts = SCO.get_incident_vertices_f(*faces.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addVertices(verts);
             redraw();
@@ -234,9 +235,9 @@ void functionCallback() {
         }
     }
     if (ImGui::Button("get_incident_edges_f")) { 
-        std::set<size_t> faces = polyscope::state::subset.faces;
+        std::set<int> faces = polyscope::state::subset.faces;
         if( faces.size() == 1 ){
-            std::set<size_t> edges = SCO.get_incident_edges_f(*faces.begin());
+            std::set<int> edges = SCO.get_incident_edges_f(*faces.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addEdges(edges);
             redraw();
@@ -246,9 +247,9 @@ void functionCallback() {
         }
     }
     if (ImGui::Button("get_adjacent_faces_f")) {
-        std::set<size_t> faces = polyscope::state::subset.faces;
+        std::set<int> faces = polyscope::state::subset.faces;
         if( faces.size() == 1 ){
-            std::set<size_t> f = SCO.get_adjacent_faces_f(*faces.begin());
+            std::set<int> f = SCO.get_adjacent_faces_f(*faces.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addFaces(f);
             redraw();
@@ -258,9 +259,9 @@ void functionCallback() {
         }
     }
     if (ImGui::Button("get_adjacent_faces_f2")) {
-        std::set<size_t> faces = polyscope::state::subset.faces;
+        std::set<int> faces = polyscope::state::subset.faces;
         if( faces.size() == 1 ){
-            std::set<size_t> f = SCO.get_adjacent_faces_f2(*faces.begin());
+            std::set<int> f = SCO.get_adjacent_faces_f2(*faces.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addFaces(f);
             redraw();
@@ -271,9 +272,9 @@ void functionCallback() {
     }
 
     if (ImGui::Button("get_adjacent_vertices_v")) {
-        std::set<size_t> vertices = polyscope::state::subset.vertices;
+        std::set<int> vertices = polyscope::state::subset.vertices;
         if( vertices.size() == 1 && polyscope::state::subset.edges.size() == 0 && polyscope::state::subset.edges.size() == 0){
-            std::set<size_t> verts = SCO.get_adjacent_vertices_v(*vertices.begin());
+            std::set<int> verts = SCO.get_adjacent_vertices_v(*vertices.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addVertices(verts);
             redraw();
@@ -284,9 +285,9 @@ void functionCallback() {
     }
 
     if (ImGui::Button("get_incident_faces_v")) {
-        std::set<size_t> vertices = polyscope::state::subset.vertices;
+        std::set<int> vertices = polyscope::state::subset.vertices;
         if( vertices.size() == 1 && polyscope::state::subset.edges.size() == 0 && polyscope::state::subset.edges.size() == 0){
-            std::set<size_t> faces = SCO.get_incident_faces_v(*vertices.begin());
+            std::set<int> faces = SCO.get_incident_faces_v(*vertices.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addFaces(faces);
             redraw();
@@ -297,9 +298,9 @@ void functionCallback() {
     }
 
     if (ImGui::Button("get_incident_edges_v")) {
-        std::set<size_t> vertices = polyscope::state::subset.vertices;
+        std::set<int> vertices = polyscope::state::subset.vertices;
         if( vertices.size() == 1 && polyscope::state::subset.edges.size() == 0 && polyscope::state::subset.edges.size() == 0){
-            std::set<size_t> edges = SCO.get_incident_edges_v(*vertices.begin());
+            std::set<int> edges = SCO.get_incident_edges_v(*vertices.begin());
             polyscope::state::subset.deleteAll();
             polyscope::state::subset.addEdges(edges);
             redraw();
@@ -311,7 +312,7 @@ void functionCallback() {
 
     if (ImGui::Button("Face color")) {
         std::vector<std::array<double, 3>> fColor(meshF.rows());
-        for (size_t iF = 0; iF < meshF.rows(); iF++) { 
+        for (int iF = 0; iF < meshF.rows(); iF++) { 
           fColor[iF] = {{polyscope::randomUnit(), polyscope::randomUnit(), polyscope::randomUnit()}};
           std::cout<<"fColor[iF]: "<<fColor[iF][0]<<fColor[iF][1]<<fColor[iF][2]<<std::endl;
         } 
@@ -358,11 +359,11 @@ int main(int argc, char** argv) {
     std::cout<<"meshV:\n"<<meshV<<std::endl;
     std::cout<<"meshF:\n"<<meshF<<std::endl;
     // 
-    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic > F = meshF.cast<size_t>();
-    Eigen::Matrix< size_t, Eigen::Dynamic, Eigen::Dynamic >  FF = preprocess_matrix(F);
+    Eigen::Matrix< int, Eigen::Dynamic, Eigen::Dynamic > F = meshF.cast<int>();
+    Eigen::Matrix< int, Eigen::Dynamic, Eigen::Dynamic >  FF = preprocess_matrix(F);
     meshF = FF.cast<int>();
     std::cout<<"meshF:\n"<<meshF<<std::endl;
-    SCO.initialize(F);
+    SCO.initialize(meshV, F);
     // SCO.vertices_of_diamond(0);
     //
     // Load mesh
@@ -384,10 +385,10 @@ int main(int argc, char** argv) {
     // Add mesh to GUI
     psMesh = polyscope::registerSurfaceMesh(MESHNAME, meshV, SCO.F);
     // Set edge indices
-    typedef std::tuple<size_t, size_t> key_e;
+    typedef std::tuple<int, int> key_e;
     std::set<key_e> e_set;
-    std::vector<size_t> edgeFirst;
-    std::vector<size_t> edgeSecond;
+    std::vector<int> edgeFirst;
+    std::vector<int> edgeSecond;
     for (int i = 0; i < SCO.n_edges(); ++i){
         edgeFirst.push_back(SCO.E(i, 0));
         edgeSecond.push_back(SCO.E(i, 1));
@@ -396,10 +397,10 @@ int main(int argc, char** argv) {
     for (int i = 0; i < SCO.n_faces(); ++i)
     {
         for(int j = 0; j < 3; j++) {
-            size_t vertex_A = SCO.F(i, j);
-            size_t vertex_B = SCO.F(i, (j+1) % 3 );
-            size_t min = std::min({vertex_A, vertex_B});
-            size_t max = std::max({vertex_A, vertex_B});
+            int vertex_A = SCO.F(i, j);
+            int vertex_B = SCO.F(i, (j+1) % 3 );
+            int min = std::min({vertex_A, vertex_B});
+            int max = std::max({vertex_A, vertex_B});
             key_e cur_key = std::make_tuple(min, max);
             auto search = e_set.find(cur_key);
             if(search != e_set.end()){
@@ -426,7 +427,7 @@ int main(int argc, char** argv) {
     // std::cout<<std::endl;
     // std::cout<<"edge indices 2: "<<edgeIndices.size()<<std::endl;
     psMesh->setEdgePermutation(edgeIndices, edgeIndices.size());
-    print_vec(psMesh->edgePerm);
+    // print_vec(psMesh->edgePerm);
     // psMesh->buildEdgeInfoGui();
 
     // psMesh->setEdgePermutation(edgeFirst, edgeSecond);

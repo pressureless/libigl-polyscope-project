@@ -19,13 +19,13 @@ using Eigen::MatrixXi;
 TriangleMesh::TriangleMesh(){
 
 }
-TriangleMesh::TriangleMesh(const Eigen::MatrixXi &V, const Matrix &T){
+TriangleMesh::TriangleMesh(const Eigen::MatrixXd &V, const Matrix &T){
     this->V = V;
     Matrix new_T = preprocess_matrix(T);
     this->initialize(V, new_T);
 }
 
-void TriangleMesh::initialize(const Eigen::MatrixXi &V, Matrix &T){
+void TriangleMesh::initialize(const Eigen::MatrixXd &V, Matrix &T){
     std::cout<<"T cols:"<<T.cols()<<std::endl;
     this->T = T;
     // std::cout<<"T:\n"<<this->T<<std::endl;
