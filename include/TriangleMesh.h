@@ -21,15 +21,16 @@ typedef Eigen::Matrix< int, 1, Eigen::Dynamic> RowVector;
 typedef Eigen::Matrix< int, Eigen::Dynamic, Eigen::Dynamic> Matrix;
 class TriangleMesh {
 public:
-    TriangleMesh(Eigen::MatrixXi &T);
+    TriangleMesh(const Eigen::MatrixXi &V, const Eigen::MatrixXi &T);
     TriangleMesh();
-    void initialize(Eigen::MatrixXi &T);
+    void initialize(const Eigen::MatrixXi &V, Eigen::MatrixXi &T);
     void create_edges();
     void create_edges_from_faces();
     void create_faces();
     void build_boundary_mat3(); // T -> F, size: |F|x|T|, boundary of tets
     void build_boundary_mat2(); // F -> E, size: |E|x|F|, boundary of triangles
     void build_boundary_mat1(); // E -> V, size: |V|x|E|, boundary of edges
+    void build_nonboundary_edges();
     // mesh API
     // v as input
     std::set<int> get_adjacent_vertices_v(int vindex); 
@@ -69,8 +70,10 @@ public:
     int get_face_index(int i, int j, int k, int &sign);
 // private:
     int num_v;
+    Matrix V;
     Matrix T;
     Matrix E;
+    Matrix edges;  // non-boundary edges
     Matrix F;
     std::map<key_f, int> map_f; // tuple -> face index
     std::map<key_e, int> map_e; // tuple -> edge index

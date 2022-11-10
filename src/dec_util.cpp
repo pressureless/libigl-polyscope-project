@@ -160,12 +160,13 @@ Matrix remove_duplicate_rows(Matrix source){
 }
 
 
-Matrix preprocess_matrix(Matrix &source){
+Matrix preprocess_matrix(const Matrix &source){
+    Matrix new_source(source.rows(), source.cols());
     for (int i=0; i< source.rows(); i++) {
         RowVector r = source.row(i);
-        source.row(i) = permute_rvector(r);
+        new_source.row(i) = permute_rvector(r);
     }
-    return remove_duplicate_rows(sort_matrix(source));
+    return remove_duplicate_rows(sort_matrix(new_source));
 }
 
 

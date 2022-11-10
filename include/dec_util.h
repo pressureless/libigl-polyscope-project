@@ -42,7 +42,7 @@ RowVector permute_rvector(const RowVector &source);
 
 Matrix remove_duplicate_rows(Matrix source);
 
-Matrix preprocess_matrix(Matrix &source);
+Matrix preprocess_matrix(const Matrix &source);
 
 void print_set(const std::set<int>& source);
 

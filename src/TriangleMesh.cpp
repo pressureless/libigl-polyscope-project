@@ -19,13 +19,15 @@ using Eigen::MatrixXi;
 TriangleMesh::TriangleMesh(){
 
 }
-TriangleMesh::TriangleMesh(Matrix &T){
-    this->initialize(T);
+TriangleMesh::TriangleMesh(const Eigen::MatrixXi &V, const Matrix &T){
+    this->V = V;
+    Matrix new_T = preprocess_matrix(T);
+    this->initialize(V, new_T);
 }
 
-void TriangleMesh::initialize(Matrix &T){
+void TriangleMesh::initialize(const Eigen::MatrixXi &V, Matrix &T){
     std::cout<<"T cols:"<<T.cols()<<std::endl;
-    this->T = preprocess_matrix(T);
+    this->T = T;
     // std::cout<<"T:\n"<<this->T<<std::endl;
     if (T.cols() == 4) {
         // tets, assume each row (tet) already has the positive orientation
@@ -49,6 +51,7 @@ void TriangleMesh::initialize(Matrix &T){
         // boundary mat
         this->build_boundary_mat1();
         this->build_boundary_mat2();
+        this->build_nonboundary_edges();
     }
     std::cout<<"Total vertices:"<<this->num_v<<", edges:"<<this->E.rows()<<", faces:"<<this->F.rows()<<", tets:"<<this->T.rows()<<std::endl;
 }
@@ -220,6 +223,10 @@ void TriangleMesh::build_boundary_mat1(){
     this->pos_bm1 = this->bm1.cwiseAbs();
     // std::cout<<"this->bm1:\n"<<this->bm1<<std::endl;
     // std::cout<<"this->pos_bm1:\n"<<this->pos_bm1<<std::endl;
+}
+
+void TriangleMesh::build_nonboundary_edges(){
+    
 }
 
 // v as input
