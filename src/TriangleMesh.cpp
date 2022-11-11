@@ -226,7 +226,22 @@ void TriangleMesh::build_boundary_mat1(){
 }
 
 void TriangleMesh::build_nonboundary_edges(){
-    
+    VectorXi f_cnt = VectorXi::Zero(this->E.rows());
+    edges.resize(this->E.rows(), 2);
+    for (int k=0; k<this->pos_bm2.outerSize(); ++k){
+        for (SparseMatrix<int>::InnerIterator it(this->pos_bm2,k); it; ++it) {
+            f_cnt(it.row())++;
+        }
+    } 
+    int cnt = 0;
+    for (int k=0; k<this->E.rows(); ++k){
+        if (f_cnt(k) == 2)
+        {
+            edges.row(cnt) = this->E.row(k);
+            cnt++;
+        }
+    }
+    edges.conservativeResize(cnt, 2);
 }
 
 // v as input
