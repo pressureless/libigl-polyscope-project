@@ -41,11 +41,14 @@ public:
     std::set<int> get_incident_faces_e(int eindex); 
     std::set<int> get_diamond_vertices_e(int eindex);
     std::tuple< int, int > get_diamond_vertices_e(int start, int end);
+    std::tuple< int, int> get_vertices_e(int eindex);
     // f as input
     std::set<int> get_incident_vertices_f(int findex); 
     std::set<int> get_incident_edges_f(int findex); 
     std::set<int> get_adjacent_faces_f(int findex); 
     std::set<int> get_adjacent_faces_f2(int findex);
+    std::tuple< int, int, int > get_edges_f(int findex);
+    std::tuple< int, int, int > get_vertices_f(int findex);
     //
     int get_opposite_vertex(const RowVector& f, int start, int end);
     // simplicial complex
@@ -68,6 +71,7 @@ public:
     int n_tets() const;
     int get_edge_index(int i, int j, int &sign);
     int get_face_index(int i, int j, int k, int &sign);
+    void init_mesh_indices();
 // private:
     int num_v;
     Eigen::MatrixXd V;
@@ -75,6 +79,9 @@ public:
     Matrix E;
     Matrix edges;  // non-boundary edges
     Matrix F;
+    std::set<int> Vi;
+    std::set<int> Ei;
+    std::set<int> Fi;
     std::map<key_f, int> map_f; // tuple -> face index
     std::map<key_e, int> map_e; // tuple -> edge index
     Eigen::SparseMatrix<int> bm1; // |V|x|E|

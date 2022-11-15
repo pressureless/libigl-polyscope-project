@@ -53,7 +53,21 @@ void TriangleMesh::initialize(const Eigen::MatrixXd &V, Matrix &T){
         this->build_boundary_mat2();
         this->build_nonboundary_edges();
     }
+    this->init_mesh_indices();
     std::cout<<"Total vertices:"<<this->num_v<<", edges:"<<this->E.rows()<<", faces:"<<this->F.rows()<<", tets:"<<this->T.rows()<<std::endl;
+}
+
+
+void TriangleMesh::init_mesh_indices(){
+    for (int i = 0; i < this->num_v; ++i){
+        this->Vi.insert(i);
+    }
+    for (int i = 0; i < this->E.rows(); ++i){
+        this->Ei.insert(i);
+    }
+    for (int i = 0; i < this->F.rows(); ++i){
+        this->Fi.insert(i);
+    }
 }
 
 int TriangleMesh::n_edges() const{
@@ -334,6 +348,10 @@ std::set<int> TriangleMesh::get_diamond_vertices_e(int eindex){
     print_set(ver);
     return ver;
 }
+//
+std::tuple< int, int > TriangleMesh::get_vertices_e(int eindex){
+    return std::tuple<int, int>{this->E(eindex, 0), this->E(eindex, 1)};
+}
 
 int TriangleMesh::get_opposite_vertex(const RowVector& f, int start, int end){
     int res = 0;
@@ -440,6 +458,25 @@ std::set<int> TriangleMesh::get_adjacent_faces_f2(int findex){
     return result;
 }
 
+
+std::tuple< int, int, int > TriangleMesh::get_edges_f(int findex){
+    // get edge indices in a face
+    VectorXi res(3);
+    for (int i = 0; i < 3; ++i)
+    {
+        key_e key = std::make_tuple(this->F.row(findex,i%3), this->F.row(findex,(i+1)%3));
+        auto search = this->map_e.find(key);
+        if (search == this->map_e.end()){
+            search = std::make_tuple(this->F.row(findex,(i+1)%3), this->F.row(findex,i%3));
+        } 
+        res(i) = search->second;
+    }
+     std::tuple< int, int, int >{res(0), res(1), res(2)};
+}
+
+std::tuple< int, int, int > TriangleMesh::get_vertices_f(int findex){
+    return std::tuple< int, int, int >{this->F.row(findex,0), this->F.row(findex,1), this->F.row(findex,2)};;
+}
 VectorXi TriangleMesh::build_vertex_vector(const SimplexSubset& subset) const{
     VectorXi v = VectorXi::Zero(this->num_v);
     for (int idx : subset.vertices)
