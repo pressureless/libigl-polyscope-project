@@ -14,6 +14,7 @@
 // using Eigen::Matrix;
 // using Eigen::VectorXi;
 using Eigen::SparseMatrix;
+typedef std::tuple<std::set<int>, std::set<int>, std::set<int>, std::set<int> > SetTuple;
 typedef std::tuple<int, int, int> key_f;
 typedef std::tuple<int, int> key_e;
 typedef Eigen::Matrix< int, Eigen::Dynamic, 1> Vector;
@@ -41,6 +42,7 @@ public:
     std::set<int> get_incident_faces_e(int eindex); 
     std::set<int> get_diamond_vertices_e(int eindex);
     std::tuple< int, int > get_diamond_vertices_e(int start, int end);
+    std::tuple< int, int > get_diamond_faces_e(int eindex);
     std::tuple< int, int> get_vertices_e(int eindex);
     // f as input
     std::set<int> get_incident_vertices_f(int findex); 
@@ -59,11 +61,18 @@ public:
     Eigen::VectorXi build_edge_vector(const std::set<int>& eset) const;
     Eigen::VectorXi build_face_vector(const std::set<int>& fset) const;
     SimplicialSet star(const SimplicialSet& subset) const;
+    SetTuple star(SetTuple& subset) const;
     SimplicialSet closure(const SimplicialSet& subset) const;
     SimplicialSet link(const SimplicialSet& subset) const;
+    SetTuple diamond(int eindex);
     bool is_complex(const SimplicialSet& subset) const;
     int is_pure_complex(const SimplicialSet& subset) const;
     SimplicialSet boundary(const SimplicialSet& subset) const;
+
+    std::set<int> vertices(const SetTuple& sset);
+    std::set<int> edges(const SetTuple& sset);
+    std::set<int> faces(const SetTuple& sset);
+    std::set<int> tets(const SetTuple& sset);
     //
     int n_edges() const;
     int n_vertices() const;
@@ -77,10 +86,11 @@ public:
     Eigen::MatrixXd V;
     Matrix T;
     Matrix E;
-    Matrix edges;  // non-boundary edges
+    Matrix nonboundary_edges;  // non-boundary edges
     Matrix F;
     std::set<int> Vi;
     std::set<int> Ei;
+    std::set<int> nEi;   // non-boundary edges
     std::set<int> Fi;
     std::map<key_f, int> map_f; // tuple -> face index
     std::map<key_e, int> map_e; // tuple -> edge index

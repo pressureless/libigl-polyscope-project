@@ -241,7 +241,7 @@ void TriangleMesh::build_boundary_mat1(){
 
 void TriangleMesh::build_nonboundary_edges(){
     VectorXi f_cnt = VectorXi::Zero(this->E.rows());
-    edges.resize(this->E.rows(), 2);
+    nonboundary_edges.resize(this->E.rows(), 2);
     for (int k=0; k<this->pos_bm2.outerSize(); ++k){
         for (SparseMatrix<int>::InnerIterator it(this->pos_bm2,k); it; ++it) {
             f_cnt(it.row())++;
@@ -251,11 +251,12 @@ void TriangleMesh::build_nonboundary_edges(){
     for (int k=0; k<this->E.rows(); ++k){
         if (f_cnt(k) == 2)
         {
-            edges.row(cnt) = this->E.row(k);
+            nonboundary_edges.row(cnt) = this->E.row(k);
             cnt++;
+            this->nEi.insert(k);
         }
     }
-    edges.conservativeResize(cnt, 2);
+    nonboundary_edges.conservativeResize(cnt, 2);
 }
 
 // v as input
@@ -347,6 +348,37 @@ std::set<int> TriangleMesh::get_diamond_vertices_e(int eindex){
     // ver.erase(this->E(eindex, 1));
     print_set(ver);
     return ver;
+}
+
+SetTuple TriangleMesh::diamond(int eindex){
+    SimplicialSet edges;
+    edges.addEdge(eindex);
+    SimplicialSet result = closure(star(edges));
+    return result.getTuple();
+}
+
+
+std::tuple< int, int > TriangleMesh::get_diamond_faces_e(int eindex){
+    int start = this->E(eindex, 0);
+    int end = this->E(eindex, 1);
+    int first_face = 0;
+    int second_face = 0;
+    for (int k=0; k< this->bm2.outerSize(); ++k){
+        for (SparseMatrix<int>::InnerIterator it(this->bm2,k); it; ++it) {
+            if (it.row() == eindex)
+            {
+                if (it.value() == 1)
+                {
+                    first_face = get_opposite_vertex(this->F.row(it.col()), start, end);
+                }
+                else if (it.value() == -1)
+                {
+                    second_face = get_opposite_vertex(this->F.row(it.col()), start, end);
+                }
+            }
+      }
+    } 
+    return std::tuple< int, int >(first_face, second_face);
 }
 //
 std::tuple< int, int > TriangleMesh::get_vertices_e(int eindex){
@@ -528,6 +560,16 @@ Eigen::VectorXi TriangleMesh::build_face_vector(const std::set<int>& fset) const
     return f;
 }
 
+
+SetTuple  TriangleMesh::star(SetTuple& subset) const{
+    SimplicialSet param;
+    param.addVertices(std::get<0>(subset));
+    param.addEdges(std::get<1>(subset));
+    param.addFaces(std::get<2>(subset));
+    SimplicialSet res = star(param);
+    return SetTuple{res.vertices, res.edges, res.faces, res.tets};;
+}
+
 SimplicialSet TriangleMesh::star(const SimplicialSet& subset) const{
     SimplicialSet newSet = subset.deepCopy();
     VectorXi v = this->build_vertex_vector(subset);
@@ -705,5 +747,18 @@ SimplicialSet TriangleMesh::boundary(const SimplicialSet& subset) const{
         }
     }
     return this->closure(newSet);
+}
+
+std::set<int> TriangleMesh::vertices(const SetTuple& sset){
+    return std::get<0>(sset);
+}
+std::set<int> TriangleMesh::edges(const SetTuple& sset){
+    return std::get<1>(sset);
+}
+std::set<int> TriangleMesh::faces(const SetTuple& sset){
+    return std::get<2>(sset);
+}
+std::set<int> TriangleMesh::tets(const SetTuple& sset){
+    return std::get<3>(sset);
 }
     

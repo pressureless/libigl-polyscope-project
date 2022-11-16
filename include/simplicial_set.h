@@ -229,4 +229,8 @@ class SimplicialSet {
         printEdges();
         printVertices();
     }
+
+    std::tuple<std::set<int>, std::set<int>, std::set<int>, std::set<int> > getTuple(){
+        return std::tuple<std::set<int>, std::set<int>, std::set<int>, std::set<int> >(this->vertices, this->edges, this->faces, this->tets);
+    }
 };
