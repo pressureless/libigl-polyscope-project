@@ -261,9 +261,9 @@ void TriangleMesh::build_nonboundary_edges(){
 // v as input
 std::set<int> TriangleMesh::get_adjacent_vertices_v(int vindex){
     // simplex API
-    // SimplexSubset verts;
+    // SimplicialSet verts;
     // verts.addVertex(vindex);
-    // SimplexSubset result = link(verts);
+    // SimplicialSet result = link(verts);
     // std::set<int> neighbors = result.vertices;
     // print_set(neighbors);
     // return neighbors;
@@ -339,9 +339,9 @@ std::set<int> TriangleMesh::get_incident_faces_e(int eindex){
 }
 //
 std::set<int> TriangleMesh::get_diamond_vertices_e(int eindex){
-    SimplexSubset edges;
+    SimplicialSet edges;
     edges.addEdge(eindex);
-    SimplexSubset result = closure(star(edges));
+    SimplicialSet result = closure(star(edges));
     std::set<int> ver = result.vertices;
     // ver.erase(this->E(eindex, 0));
     // ver.erase(this->E(eindex, 1));
@@ -477,7 +477,7 @@ std::tuple< int, int, int > TriangleMesh::get_edges_f(int findex){
 std::tuple< int, int, int > TriangleMesh::get_vertices_f(int findex){
     return std::tuple< int, int, int >{this->F(findex,0), this->F(findex,1), this->F(findex,2)};;
 }
-VectorXi TriangleMesh::build_vertex_vector(const SimplexSubset& subset) const{
+VectorXi TriangleMesh::build_vertex_vector(const SimplicialSet& subset) const{
     VectorXi v = VectorXi::Zero(this->num_v);
     for (int idx : subset.vertices)
     {
@@ -486,7 +486,7 @@ VectorXi TriangleMesh::build_vertex_vector(const SimplexSubset& subset) const{
     return v;
 }
 
-VectorXi TriangleMesh::build_edge_vector(const SimplexSubset& subset) const{
+VectorXi TriangleMesh::build_edge_vector(const SimplicialSet& subset) const{
     VectorXi e = VectorXi::Zero(this->E.rows());
     for (auto idx : subset.edges)
     {
@@ -495,7 +495,7 @@ VectorXi TriangleMesh::build_edge_vector(const SimplexSubset& subset) const{
     return e;
 }
 
-VectorXi TriangleMesh::build_face_vector(const SimplexSubset& subset) const{
+VectorXi TriangleMesh::build_face_vector(const SimplicialSet& subset) const{
     VectorXi f = VectorXi::Zero(this->F.rows());
     for (int idx : subset.faces)
     {
@@ -528,8 +528,8 @@ Eigen::VectorXi TriangleMesh::build_face_vector(const std::set<int>& fset) const
     return f;
 }
 
-SimplexSubset TriangleMesh::star(const SimplexSubset& subset) const{
-    SimplexSubset newSet = subset.deepCopy();
+SimplicialSet TriangleMesh::star(const SimplicialSet& subset) const{
+    SimplicialSet newSet = subset.deepCopy();
     VectorXi v = this->build_vertex_vector(subset);
     std::cout<<"v:"<<v<<std::endl;
     VectorXi e = this->build_edge_vector(subset);
@@ -556,8 +556,8 @@ SimplexSubset TriangleMesh::star(const SimplexSubset& subset) const{
     std::cout<<"extraF:"<<extraF<<std::endl;
     return newSet;
 }
-SimplexSubset TriangleMesh::closure(const SimplexSubset& subset) const{
-    SimplexSubset newSet = subset.deepCopy();
+SimplicialSet TriangleMesh::closure(const SimplicialSet& subset) const{
+    SimplicialSet newSet = subset.deepCopy();
     VectorXi f = this->build_face_vector(subset);
     VectorXi extraE = this->pos_bm2 * f;
     for (int i = 0; i < extraE.size(); ++i)
@@ -578,16 +578,16 @@ SimplexSubset TriangleMesh::closure(const SimplexSubset& subset) const{
     }
     return newSet;
 }
-SimplexSubset TriangleMesh::link(const SimplexSubset& subset) const{
-    SimplexSubset newSet = this->closure(this->star(subset));
+SimplicialSet TriangleMesh::link(const SimplicialSet& subset) const{
+    SimplicialSet newSet = this->closure(this->star(subset));
     newSet.deleteSubset(this->star(this->closure(subset)));
     return newSet;
 }
-bool TriangleMesh::is_complex(const SimplexSubset& subset) const{
-    SimplexSubset newSet = this->closure(subset);
+bool TriangleMesh::is_complex(const SimplicialSet& subset) const{
+    SimplicialSet newSet = this->closure(subset);
     return newSet.equals(subset);
 }
-int TriangleMesh::is_pure_complex(const SimplexSubset& subset) const{
+int TriangleMesh::is_pure_complex(const SimplicialSet& subset) const{
     int degree = -1;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
     if (this->is_complex(subset))
@@ -659,8 +659,8 @@ int TriangleMesh::is_pure_complex(const SimplexSubset& subset) const{
     }
     return degree;
 } 
-SimplexSubset TriangleMesh::boundary(const SimplexSubset& subset) const{
-    SimplexSubset newSet;
+SimplicialSet TriangleMesh::boundary(const SimplicialSet& subset) const{
+    SimplicialSet newSet;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
     if (this->is_pure_complex(subset))
     {

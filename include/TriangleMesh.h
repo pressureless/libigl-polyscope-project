@@ -10,7 +10,7 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <map>
-#include "simplex_subset.h"
+#include "simplicial_set.h"
 // using Eigen::Matrix;
 // using Eigen::VectorXi;
 using Eigen::SparseMatrix;
@@ -52,18 +52,18 @@ public:
     //
     int get_opposite_vertex(const RowVector& f, int start, int end);
     // simplicial complex
-    Eigen::VectorXi build_vertex_vector(const SimplexSubset& subset) const;
-    Eigen::VectorXi build_edge_vector(const SimplexSubset& subset) const;
-    Eigen::VectorXi build_face_vector(const SimplexSubset& subset) const;
+    Eigen::VectorXi build_vertex_vector(const SimplicialSet& subset) const;
+    Eigen::VectorXi build_edge_vector(const SimplicialSet& subset) const;
+    Eigen::VectorXi build_face_vector(const SimplicialSet& subset) const;
     Eigen::VectorXi build_vertex_vector(const std::set<int>& vset) const;
     Eigen::VectorXi build_edge_vector(const std::set<int>& eset) const;
     Eigen::VectorXi build_face_vector(const std::set<int>& fset) const;
-    SimplexSubset star(const SimplexSubset& subset) const;
-    SimplexSubset closure(const SimplexSubset& subset) const;
-    SimplexSubset link(const SimplexSubset& subset) const;
-    bool is_complex(const SimplexSubset& subset) const;
-    int is_pure_complex(const SimplexSubset& subset) const;
-    SimplexSubset boundary(const SimplexSubset& subset) const;
+    SimplicialSet star(const SimplicialSet& subset) const;
+    SimplicialSet closure(const SimplicialSet& subset) const;
+    SimplicialSet link(const SimplicialSet& subset) const;
+    bool is_complex(const SimplicialSet& subset) const;
+    int is_pure_complex(const SimplicialSet& subset) const;
+    SimplicialSet boundary(const SimplicialSet& subset) const;
     //
     int n_edges() const;
     int n_vertices() const;

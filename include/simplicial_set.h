@@ -2,7 +2,7 @@
 
 #include <set>
 
-class SimplexSubset {
+class SimplicialSet {
 
   public:
     std::set<int> vertices;
@@ -10,19 +10,19 @@ class SimplexSubset {
     std::set<int> faces;
     std::set<int> tets;
 
-    /* Initialize an empty SimplexSubset. */
-    SimplexSubset() {}
+    /* Initialize an empty SimplicialSet. */
+    SimplicialSet() {}
     
-    /* Initialize a SimplexSubset with the given vertices, edges, and faces. */
-    SimplexSubset(const std::set<int>& V, const std::set<int>& E, const std::set<int>& F) {
+    /* Initialize a SimplicialSet with the given vertices, edges, and faces. */
+    SimplicialSet(const std::set<int>& V, const std::set<int>& E, const std::set<int>& F) {
 
         vertices = V;
         edges = E;
         faces = F;
     }
     
-    /* Initialize a SimplexSubset with the given vertices, edges, and faces. */
-    SimplexSubset(const std::set<int>& V, const std::set<int>& E, const std::set<int>& F, const std::set<int>& T) {
+    /* Initialize a SimplicialSet with the given vertices, edges, and faces. */
+    SimplicialSet(const std::set<int>& V, const std::set<int>& E, const std::set<int>& F, const std::set<int>& T) {
 
         vertices = V;
         edges = E;
@@ -30,15 +30,15 @@ class SimplexSubset {
         tets = T;
     }
 
-    /* Make a deep copy of the input SimplexSubset and return it as a new
-     * SimplexSubset.
+    /* Make a deep copy of the input SimplicialSet and return it as a new
+     * SimplicialSet.
      */
-    SimplexSubset deepCopy() const {
+    SimplicialSet deepCopy() const {
         std::set<int> newVertices = vertices;
         std::set<int> newEdges = edges;
         std::set<int> newFaces = faces;
         std::set<int> newTets = tets;
-        return SimplexSubset(newVertices, newEdges, newFaces, newTets);
+        return SimplicialSet(newVertices, newEdges, newFaces, newTets);
     }
 
     /* Add a vertex to this subset. */
@@ -158,13 +158,13 @@ class SimplexSubset {
     }
 
     /* Returns true if subsets are equivalent. */
-    bool equals(const SimplexSubset& other) const {
+    bool equals(const SimplicialSet& other) const {
         // == compares elements at each position; but std::set always orders elements upon insertion/initialization
         return (vertices == other.vertices) && (edges == other.edges) && (faces == other.faces) && (tets == other.tets);
     }
 
     /* Adds a subset's vertices, edges, and faces to this subset. */
-    void addSubset(const SimplexSubset& other) {
+    void addSubset(const SimplicialSet& other) {
         this->addVertices(other.vertices);
         this->addEdges(other.edges);
         this->addFaces(other.faces);
@@ -172,7 +172,7 @@ class SimplexSubset {
     }
 
     /* Removes a subset's vertices, edges, and faces from this subset. */
-    void deleteSubset(const SimplexSubset& other) {
+    void deleteSubset(const SimplicialSet& other) {
         this->deleteVertices(other.vertices);
         this->deleteEdges(other.edges);
         this->deleteFaces(other.faces);
