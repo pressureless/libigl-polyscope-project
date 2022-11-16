@@ -464,18 +464,18 @@ std::tuple< int, int, int > TriangleMesh::get_edges_f(int findex){
     VectorXi res(3);
     for (int i = 0; i < 3; ++i)
     {
-        key_e key = std::make_tuple(this->F.row(findex,i%3), this->F.row(findex,(i+1)%3));
+        key_e key = std::make_tuple(this->F(findex,i%3), this->F(findex,(i+1)%3));
         auto search = this->map_e.find(key);
         if (search == this->map_e.end()){
-            search = std::make_tuple(this->F.row(findex,(i+1)%3), this->F.row(findex,i%3));
+            search = this->map_e.find(std::make_tuple(this->F(findex,(i+1)%3), this->F(findex,i%3)));
         } 
         res(i) = search->second;
     }
-     std::tuple< int, int, int >{res(0), res(1), res(2)};
+    return std::tuple< int, int, int >{res(0), res(1), res(2)};
 }
 
 std::tuple< int, int, int > TriangleMesh::get_vertices_f(int findex){
-    return std::tuple< int, int, int >{this->F.row(findex,0), this->F.row(findex,1), this->F.row(findex,2)};;
+    return std::tuple< int, int, int >{this->F(findex,0), this->F(findex,1), this->F(findex,2)};;
 }
 VectorXi TriangleMesh::build_vertex_vector(const SimplexSubset& subset) const{
     VectorXi v = VectorXi::Zero(this->num_v);
