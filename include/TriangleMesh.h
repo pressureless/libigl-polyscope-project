@@ -25,6 +25,7 @@ public:
     TriangleMesh(const Eigen::MatrixXd &V, const Eigen::MatrixXi &T);
     TriangleMesh();
     void initialize(const Eigen::MatrixXd &V, Eigen::MatrixXi &T);
+    void initialize(const Eigen::MatrixXd &V, const Matrix &T);
     void create_edges();
     void create_edges_from_faces();
     void create_faces();

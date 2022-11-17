@@ -20,11 +20,14 @@ TriangleMesh::TriangleMesh(){
 
 }
 TriangleMesh::TriangleMesh(const Eigen::MatrixXd &V, const Matrix &T){
+    this->initialize(V, T);
+}
+
+void TriangleMesh::initialize(const Eigen::MatrixXd &V, const Matrix &T){
     this->V = V;
     Matrix new_T = preprocess_matrix(T);
     this->initialize(V, new_T);
 }
-
 void TriangleMesh::initialize(const Eigen::MatrixXd &V, Matrix &T){
     std::cout<<"T cols:"<<T.cols()<<std::endl;
     this->T = T;
