@@ -372,15 +372,16 @@ std::tuple< int, int > TriangleMesh::get_diamond_faces_e(int eindex){
             {
                 if (it.value() == 1)
                 {
-                    first_face = get_opposite_vertex(this->F.row(it.col()), start, end);
+                    first_face = it.col();
                 }
                 else if (it.value() == -1)
                 {
-                    second_face = get_opposite_vertex(this->F.row(it.col()), start, end);
+                    second_face = it.col();
                 }
             }
       }
     } 
+    // std::cout<<"get_diamond_faces_e, first face:"<<first_face<<", second face:"<<second_face<<std::endl;
     return std::tuple< int, int >(first_face, second_face);
 }
 //
@@ -510,6 +511,7 @@ std::tuple< int, int, int > TriangleMesh::get_edges_f(int findex){
 }
 
 std::tuple< int, int, int > TriangleMesh::get_vertices_f(int findex){
+    // std::cout<<"findex:"<<findex<<std::endl;
     return std::tuple< int, int, int >{this->F(findex,0), this->F(findex,1), this->F(findex,2)};;
 }
 VectorXi TriangleMesh::build_vertex_vector(const SimplicialSet& subset) const{
@@ -561,6 +563,39 @@ Eigen::VectorXi TriangleMesh::build_face_vector(const std::set<int>& fset) const
         f[idx] = 1;
     }
     return f;
+}
+std::set<int> TriangleMesh::vector_to_vertex(const Eigen::VectorXi& vi){
+    std::set<int> vertices;
+    for (int i = 0; i < vi.size(); ++i)
+    {
+        if (vi[i] > 0)
+        {
+            vertices.insert(i);
+        }
+    }
+    return vertices;
+}
+std::set<int> TriangleMesh::vector_to_edge(const Eigen::VectorXi& ei){
+    std::set<int> edges;
+    for (int i = 0; i < ei.size(); ++i)
+    {
+        if (ei[i] > 0)
+        {
+            edges.insert(i);
+        }
+    }
+    return edges;
+}
+std::set<int> TriangleMesh::vector_to_face(const Eigen::VectorXi& fi){
+    std::set<int> faces;
+    for (int i = 0; i < fi.size(); ++i)
+    {
+        if (fi[i] > 0)
+        {
+            faces.insert(i);
+        }
+    }
+    return faces;
 }
 
 
