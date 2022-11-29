@@ -514,7 +514,7 @@ std::tuple< int, int, int > TriangleMesh::get_vertices_f(int findex){
     // std::cout<<"findex:"<<findex<<std::endl;
     return std::tuple< int, int, int >{this->F(findex,0), this->F(findex,1), this->F(findex,2)};;
 }
-VectorXi TriangleMesh::build_vertex_vector(const SimplicialSet& subset) const{
+VectorXi TriangleMesh::vertices_to_vector(const SimplicialSet& subset) const{
     VectorXi v = VectorXi::Zero(this->num_v);
     for (int idx : subset.vertices)
     {
@@ -523,7 +523,7 @@ VectorXi TriangleMesh::build_vertex_vector(const SimplicialSet& subset) const{
     return v;
 }
 
-VectorXi TriangleMesh::build_edge_vector(const SimplicialSet& subset) const{
+VectorXi TriangleMesh::edges_to_vector(const SimplicialSet& subset) const{
     VectorXi e = VectorXi::Zero(this->E.rows());
     for (auto idx : subset.edges)
     {
@@ -532,7 +532,7 @@ VectorXi TriangleMesh::build_edge_vector(const SimplicialSet& subset) const{
     return e;
 }
 
-VectorXi TriangleMesh::build_face_vector(const SimplicialSet& subset) const{
+VectorXi TriangleMesh::faces_to_vector(const SimplicialSet& subset) const{
     VectorXi f = VectorXi::Zero(this->F.rows());
     for (int idx : subset.faces)
     {
@@ -540,7 +540,7 @@ VectorXi TriangleMesh::build_face_vector(const SimplicialSet& subset) const{
     }
     return f;
 }
-Eigen::VectorXi TriangleMesh::build_vertex_vector(const std::set<int>& vset) const{
+Eigen::VectorXi TriangleMesh::vertices_to_vector(const std::set<int>& vset) const{
     VectorXi v = VectorXi::Zero(this->num_v);
     for (int idx : vset)
     {
@@ -548,7 +548,7 @@ Eigen::VectorXi TriangleMesh::build_vertex_vector(const std::set<int>& vset) con
     }
     return v;
 }
-Eigen::VectorXi TriangleMesh::build_edge_vector(const std::set<int>& eset) const{
+Eigen::VectorXi TriangleMesh::edges_to_vector(const std::set<int>& eset) const{
     VectorXi e = VectorXi::Zero(this->E.rows());
     for (auto idx : eset)
     {
@@ -556,7 +556,7 @@ Eigen::VectorXi TriangleMesh::build_edge_vector(const std::set<int>& eset) const
     }
     return e;
 }
-Eigen::VectorXi TriangleMesh::build_face_vector(const std::set<int>& fset) const{
+Eigen::VectorXi TriangleMesh::faces_to_vector(const std::set<int>& fset) const{
     VectorXi f = VectorXi::Zero(this->F.rows());
     for (int idx : fset)
     {
@@ -564,7 +564,7 @@ Eigen::VectorXi TriangleMesh::build_face_vector(const std::set<int>& fset) const
     }
     return f;
 }
-std::set<int> TriangleMesh::vector_to_vertex(const Eigen::VectorXi& vi){
+std::set<int> TriangleMesh::vector_to_vertices(const Eigen::VectorXi& vi){
     std::set<int> vertices;
     for (int i = 0; i < vi.size(); ++i)
     {
@@ -575,7 +575,7 @@ std::set<int> TriangleMesh::vector_to_vertex(const Eigen::VectorXi& vi){
     }
     return vertices;
 }
-std::set<int> TriangleMesh::vector_to_edge(const Eigen::VectorXi& ei){
+std::set<int> TriangleMesh::vector_to_edges(const Eigen::VectorXi& ei){
     std::set<int> edges;
     for (int i = 0; i < ei.size(); ++i)
     {
@@ -586,7 +586,7 @@ std::set<int> TriangleMesh::vector_to_edge(const Eigen::VectorXi& ei){
     }
     return edges;
 }
-std::set<int> TriangleMesh::vector_to_face(const Eigen::VectorXi& fi){
+std::set<int> TriangleMesh::vector_to_faces(const Eigen::VectorXi& fi){
     std::set<int> faces;
     for (int i = 0; i < fi.size(); ++i)
     {
@@ -610,9 +610,9 @@ SetTuple  TriangleMesh::star(SetTuple& subset) const{
 
 SimplicialSet TriangleMesh::star(const SimplicialSet& subset) const{
     SimplicialSet newSet = subset.deepCopy();
-    VectorXi v = this->build_vertex_vector(subset);
+    VectorXi v = this->vertices_to_vector(subset);
     std::cout<<"v:"<<v<<std::endl;
-    VectorXi e = this->build_edge_vector(subset);
+    VectorXi e = this->edges_to_vector(subset);
     // std::cout<<"pos_bm1:"<<pos_bm1<<std::endl;
     // std::cout<<"pos_bm2:"<<pos_bm2<<std::endl;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
@@ -638,7 +638,7 @@ SimplicialSet TriangleMesh::star(const SimplicialSet& subset) const{
 }
 SimplicialSet TriangleMesh::closure(const SimplicialSet& subset) const{
     SimplicialSet newSet = subset.deepCopy();
-    VectorXi f = this->build_face_vector(subset);
+    VectorXi f = this->faces_to_vector(subset);
     VectorXi extraE = this->pos_bm2 * f;
     for (int i = 0; i < extraE.size(); ++i)
     {
@@ -647,7 +647,7 @@ SimplicialSet TriangleMesh::closure(const SimplicialSet& subset) const{
             newSet.addEdge(i);
         }
     }
-    VectorXi e = this->build_edge_vector(newSet);
+    VectorXi e = this->edges_to_vector(newSet);
     VectorXi extraV = this->pos_bm1 * e;
     for (int i = 0; i < extraV.size(); ++i)
     {

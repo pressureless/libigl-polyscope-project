@@ -55,15 +55,15 @@ public:
     //
     int get_opposite_vertex(const RowVector& f, int start, int end);
     // simplicial complex
-    Eigen::VectorXi build_vertex_vector(const SimplicialSet& subset) const;
-    Eigen::VectorXi build_edge_vector(const SimplicialSet& subset) const;
-    Eigen::VectorXi build_face_vector(const SimplicialSet& subset) const;
-    Eigen::VectorXi build_vertex_vector(const std::set<int>& vset) const;
-    Eigen::VectorXi build_edge_vector(const std::set<int>& eset) const;
-    Eigen::VectorXi build_face_vector(const std::set<int>& fset) const;
-    std::set<int> vector_to_vertex(const Eigen::VectorXi& vi);
-    std::set<int> vector_to_edge(const Eigen::VectorXi& ei);
-    std::set<int> vector_to_face(const Eigen::VectorXi& fi);
+    Eigen::VectorXi vertices_to_vector(const SimplicialSet& subset) const;
+    Eigen::VectorXi edges_to_vector(const SimplicialSet& subset) const;
+    Eigen::VectorXi faces_to_vector(const SimplicialSet& subset) const;
+    Eigen::VectorXi vertices_to_vector(const std::set<int>& vset) const;
+    Eigen::VectorXi edges_to_vector(const std::set<int>& eset) const;
+    Eigen::VectorXi faces_to_vector(const std::set<int>& fset) const;
+    std::set<int> vector_to_vertices(const Eigen::VectorXi& vi);
+    std::set<int> vector_to_edges(const Eigen::VectorXi& ei);
+    std::set<int> vector_to_faces(const Eigen::VectorXi& fi);
     SimplicialSet star(const SimplicialSet& subset) const;
     SetTuple star(SetTuple& subset) const;
     SimplicialSet closure(const SimplicialSet& subset) const;
