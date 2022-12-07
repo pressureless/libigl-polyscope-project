@@ -799,4 +799,12 @@ std::set<int> TriangleMesh::faces(const SetTuple& sset){
 std::set<int> TriangleMesh::tets(const SetTuple& sset){
     return std::get<3>(sset);
 }
+
+std::tuple<std::set<int>, std::set<int>, std::set<int>> TriangleMesh::MeshSets() const{
+    return std::tuple<std::set<int>, std::set<int>, std::set<int>>(this->Vi, this->Ei, this->Fi);
+}
+
+std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > TriangleMesh::BoundaryMatrices() const{
+    return std::tuple< Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> >(this->bm1, this->bm2);
+}
     

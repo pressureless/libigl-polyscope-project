@@ -77,6 +77,9 @@ public:
     std::set<int> edges(const SetTuple& sset);
     std::set<int> faces(const SetTuple& sset);
     std::set<int> tets(const SetTuple& sset);
+    std::tuple<std::set<int>, std::set<int>, std::set<int>> MeshSets() const;
+    std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > BoundaryMatrices() const;
+
     //
     int n_edges() const;
     int n_vertices() const;
