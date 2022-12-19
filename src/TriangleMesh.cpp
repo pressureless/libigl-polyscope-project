@@ -95,6 +95,13 @@ int TriangleMesh::get_edge_index(int i, int j, int &sign){
     sign = -1;
     return this->map_e[std::make_tuple(j, i)];
 }
+int TriangleMesh::get_edge_index(int i, int j){
+    if (i < j)
+    {
+        return this->map_e[std::make_tuple(i, j)];
+    }
+    return this->map_e[std::make_tuple(j, i)];
+} 
 
 int TriangleMesh::get_face_index(int i, int j, int k, int &sign){
     RowVector r(3); r << i, j, k;
@@ -110,6 +117,18 @@ int TriangleMesh::get_face_index(int i, int j, int k, int &sign){
     sign = -1;
     return this->map_f[std::make_tuple(p(0), p(2), p(1))];
 }
+int TriangleMesh::get_face_index(int i, int j, int k){
+    RowVector r(3); r << i, j, k;
+    RowVector p = permute_rvector(r); // get sorted face
+    // find orientation
+    key_f key = std::make_tuple(p(0), p(1), p(2));
+    auto search = this->map_f.find(key);
+    if (search != this->map_f.end()){
+        // the input face has the same orientation as the one stored
+        return this->map_f[key];
+    }
+    return this->map_f[std::make_tuple(p(0), p(2), p(1))];
+} 
 
 void TriangleMesh::create_edges(){
     Matrix E(6*T.rows(), 2);
@@ -806,5 +825,9 @@ std::tuple<std::set<int>, std::set<int>, std::set<int>> TriangleMesh::MeshSets()
 
 std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > TriangleMesh::BoundaryMatrices() const{
     return std::tuple< Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> >(this->bm1, this->bm2);
+}
+
+std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > TriangleMesh::UnsignedBoundaryMatrices() const{
+    return std::tuple< Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> >(this->pos_bm1, this->pos_bm2);
 }
     

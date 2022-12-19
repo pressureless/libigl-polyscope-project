@@ -79,14 +79,17 @@ public:
     std::set<int> tets(const SetTuple& sset);
     std::tuple<std::set<int>, std::set<int>, std::set<int>> MeshSets() const;
     std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > BoundaryMatrices() const;
+    std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > UnsignedBoundaryMatrices() const;
 
     //
     int n_edges() const;
     int n_vertices() const;
     int n_faces() const;
     int n_tets() const;
+    int get_edge_index(int i, int j); 
     int get_edge_index(int i, int j, int &sign);
     int get_face_index(int i, int j, int k, int &sign);
+    int get_face_index(int i, int j, int k); 
     void init_mesh_indices();
 // private:
     int num_v;
