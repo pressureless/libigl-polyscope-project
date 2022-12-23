@@ -55,15 +55,17 @@ public:
     //
     int get_opposite_vertex(const RowVector& f, int start, int end);
     // simplicial complex
-    Eigen::VectorXi vertices_to_vector(const SimplicialSet& subset) const;
-    Eigen::VectorXi edges_to_vector(const SimplicialSet& subset) const;
-    Eigen::VectorXi faces_to_vector(const SimplicialSet& subset) const;
-    Eigen::VectorXi vertices_to_vector(const std::set<int>& vset) const;
-    Eigen::VectorXi edges_to_vector(const std::set<int>& eset) const;
-    Eigen::VectorXi faces_to_vector(const std::set<int>& fset) const;
-    std::set<int> vector_to_vertices(const Eigen::VectorXi& vi);
-    std::set<int> vector_to_edges(const Eigen::VectorXi& ei);
-    std::set<int> vector_to_faces(const Eigen::VectorXi& fi);
+    SparseMatrix<int> vertices_to_vector(const SimplicialSet& subset) const;
+    SparseMatrix<int> edges_to_vector(const SimplicialSet& subset) const;
+    SparseMatrix<int> faces_to_vector(const SimplicialSet& subset) const;
+    SparseMatrix<int> vertices_to_vector(const std::set<int>& vset) const;
+    SparseMatrix<int> edges_to_vector(const std::set<int>& eset) const;
+    SparseMatrix<int> faces_to_vector(const std::set<int>& fset) const;
+    SparseMatrix<int> tets_to_vector(const std::set<int>& tset) const;
+    std::set<int> vector_to_vertices(SparseMatrix<int>& vi);
+    std::set<int> vector_to_edges(SparseMatrix<int>& ei);
+    std::set<int> vector_to_faces(SparseMatrix<int>& fi);
+    std::set<int> vector_to_tets(SparseMatrix<int>& ti);
     SimplicialSet star(const SimplicialSet& subset) const;
     SetTuple star(SetTuple& subset) const;
     SimplicialSet closure(const SimplicialSet& subset) const;
@@ -80,6 +82,7 @@ public:
     std::tuple<std::set<int>, std::set<int>, std::set<int>> MeshSets() const;
     std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > BoundaryMatrices() const;
     std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > UnsignedBoundaryMatrices() const;
+    // std::tuple<Eigen::VectorXi, Eigen::Matrix<int, Eigen::Dynamic, 2>, Eigen::Matrix<int, Eigen::Dynamic, 3> > CanonicalVertexOrderings() const;
 
     //
     int n_edges() const;
@@ -91,6 +94,8 @@ public:
     int get_face_index(int i, int j, int k, int &sign);
     int get_face_index(int i, int j, int k); 
     void init_mesh_indices();
+    std::set<int> nonzeros(Eigen::SparseMatrix<int> &target)const;
+    std::set<int> nonzeros(Eigen::SparseMatrix<int> &target, bool is_row)const;
 // private:
     int num_v;
     Eigen::MatrixXd V;

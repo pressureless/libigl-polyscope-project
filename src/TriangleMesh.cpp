@@ -73,6 +73,27 @@ void TriangleMesh::init_mesh_indices(){
     }
 }
 
+
+std::set<int> TriangleMesh::nonzeros(Eigen::SparseMatrix<int> & target)const{
+    return nonzeros(target, true);
+}
+
+std::set<int> TriangleMesh::nonzeros(Eigen::SparseMatrix<int> & target, bool is_row)const{
+    std::set<int> result;
+    for (int k=0; k<target.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(target,k); it; ++it) {
+        if (is_row)
+        {
+            result.insert(it.row());
+        }
+        else{
+            result.insert(it.col());
+        }
+      }
+    } 
+    return result;
+}
+
 int TriangleMesh::n_edges() const{
     return this->E.rows();
 }
@@ -533,88 +554,89 @@ std::tuple< int, int, int > TriangleMesh::get_vertices_f(int findex){
     // std::cout<<"findex:"<<findex<<std::endl;
     return std::tuple< int, int, int >{this->F(findex,0), this->F(findex,1), this->F(findex,2)};;
 }
-VectorXi TriangleMesh::vertices_to_vector(const SimplicialSet& subset) const{
-    VectorXi v = VectorXi::Zero(this->num_v);
+SparseMatrix<int> TriangleMesh::vertices_to_vector(const SimplicialSet& subset) const{
+    SparseMatrix<int> v(this->num_v, 1);
+    std::vector<Eigen::Triplet<int> > tripletList; 
     for (int idx : subset.vertices)
     {
-        v[idx] = 1;
+        tripletList.push_back(Eigen::Triplet<int>(idx, 0, 1));
     }
+    v.setFromTriplets(tripletList.begin(), tripletList.end());
     return v;
 }
 
-VectorXi TriangleMesh::edges_to_vector(const SimplicialSet& subset) const{
-    VectorXi e = VectorXi::Zero(this->E.rows());
-    for (auto idx : subset.edges)
+SparseMatrix<int> TriangleMesh::edges_to_vector(const SimplicialSet& subset) const{
+    SparseMatrix<int> e(this->E.rows(), 1);
+    std::vector<Eigen::Triplet<int> > tripletList; 
+    for (int idx : subset.edges)
     {
-        e[idx] = 1;
+        tripletList.push_back(Eigen::Triplet<int>(idx, 0, 1));
     }
+    e.setFromTriplets(tripletList.begin(), tripletList.end());
     return e;
 }
 
-VectorXi TriangleMesh::faces_to_vector(const SimplicialSet& subset) const{
-    VectorXi f = VectorXi::Zero(this->F.rows());
+SparseMatrix<int> TriangleMesh::faces_to_vector(const SimplicialSet& subset) const{
+    SparseMatrix<int> f(this->F.rows(), 1);
+    std::vector<Eigen::Triplet<int> > tripletList; 
     for (int idx : subset.faces)
     {
-        f[idx] = 1;
+        tripletList.push_back(Eigen::Triplet<int>(idx, 0, 1));
     }
+    f.setFromTriplets(tripletList.begin(), tripletList.end());
     return f;
 }
-Eigen::VectorXi TriangleMesh::vertices_to_vector(const std::set<int>& vset) const{
-    VectorXi v = VectorXi::Zero(this->num_v);
+SparseMatrix<int> TriangleMesh::vertices_to_vector(const std::set<int>& vset) const{
+    SparseMatrix<int> v(this->num_v, 1);
+    std::vector<Eigen::Triplet<int> > tripletList; 
     for (int idx : vset)
     {
-        v[idx] = 1;
+        tripletList.push_back(Eigen::Triplet<int>(idx, 0, 1));
     }
+    v.setFromTriplets(tripletList.begin(), tripletList.end());
     return v;
 }
-Eigen::VectorXi TriangleMesh::edges_to_vector(const std::set<int>& eset) const{
-    VectorXi e = VectorXi::Zero(this->E.rows());
-    for (auto idx : eset)
+SparseMatrix<int> TriangleMesh::edges_to_vector(const std::set<int>& eset) const{
+    SparseMatrix<int> e(this->E.rows(), 1);
+    std::vector<Eigen::Triplet<int> > tripletList; 
+    for (int idx : eset)
     {
-        e[idx] = 1;
+        tripletList.push_back(Eigen::Triplet<int>(idx, 0, 1));
     }
+    e.setFromTriplets(tripletList.begin(), tripletList.end());
     return e;
 }
-Eigen::VectorXi TriangleMesh::faces_to_vector(const std::set<int>& fset) const{
-    VectorXi f = VectorXi::Zero(this->F.rows());
+SparseMatrix<int> TriangleMesh::faces_to_vector(const std::set<int>& fset) const{
+    SparseMatrix<int> f(this->F.rows(), 1);
+    std::vector<Eigen::Triplet<int> > tripletList; 
     for (int idx : fset)
     {
-        f[idx] = 1;
+        tripletList.push_back(Eigen::Triplet<int>(idx, 0, 1));
     }
+    f.setFromTriplets(tripletList.begin(), tripletList.end());
     return f;
 }
-std::set<int> TriangleMesh::vector_to_vertices(const Eigen::VectorXi& vi){
-    std::set<int> vertices;
-    for (int i = 0; i < vi.size(); ++i)
+SparseMatrix<int> TriangleMesh::tets_to_vector(const std::set<int>& tset) const{
+    SparseMatrix<int> t(this->T.rows(), 1);
+    std::vector<Eigen::Triplet<int> > tripletList; 
+    for (int idx : tset)
     {
-        if (vi[i] > 0)
-        {
-            vertices.insert(i);
-        }
+        tripletList.push_back(Eigen::Triplet<int>(idx, 0, 1));
     }
-    return vertices;
+    t.setFromTriplets(tripletList.begin(), tripletList.end());
+    return t;
 }
-std::set<int> TriangleMesh::vector_to_edges(const Eigen::VectorXi& ei){
-    std::set<int> edges;
-    for (int i = 0; i < ei.size(); ++i)
-    {
-        if (ei[i] > 0)
-        {
-            edges.insert(i);
-        }
-    }
-    return edges;
+std::set<int> TriangleMesh::vector_to_vertices(SparseMatrix<int>& vi){
+    return nonzeros(vi);
 }
-std::set<int> TriangleMesh::vector_to_faces(const Eigen::VectorXi& fi){
-    std::set<int> faces;
-    for (int i = 0; i < fi.size(); ++i)
-    {
-        if (fi[i] > 0)
-        {
-            faces.insert(i);
-        }
-    }
-    return faces;
+std::set<int> TriangleMesh::vector_to_edges(SparseMatrix<int>& ei){
+    return nonzeros(ei);
+}
+std::set<int> TriangleMesh::vector_to_faces(SparseMatrix<int>& fi){
+    return nonzeros(fi);
+}
+std::set<int> TriangleMesh::vector_to_tets(SparseMatrix<int>& ti){
+    return nonzeros(ti);
 }
 
 
@@ -629,52 +651,56 @@ SetTuple  TriangleMesh::star(SetTuple& subset) const{
 
 SimplicialSet TriangleMesh::star(const SimplicialSet& subset) const{
     SimplicialSet newSet = subset.deepCopy();
-    VectorXi v = this->vertices_to_vector(subset);
+    SparseMatrix<int> v = this->vertices_to_vector(subset);
     std::cout<<"v:"<<v<<std::endl;
-    VectorXi e = this->edges_to_vector(subset);
+    SparseMatrix<int> e = this->edges_to_vector(subset);
     // std::cout<<"pos_bm1:"<<pos_bm1<<std::endl;
     // std::cout<<"pos_bm2:"<<pos_bm2<<std::endl;
     SparseMatrix<int> fv = (this->pos_bm1*this->pos_bm2).transpose();
     std::cout<<"fv:"<<fv<<std::endl;
-    VectorXi extraE = this->pos_bm1.transpose() * v;
-    for (int i = 0; i < extraE.size(); ++i)
-    {
-        if (extraE[i])
-        {
-            newSet.addEdge(i);
-        }
-    }
-    VectorXi extraF = this->pos_bm2.transpose() * e + fv * v;
-    for (int i = 0; i < extraF.size(); ++i)
-    {
-        if (extraF[i])
-        {
-            newSet.addFace(i);
-        }
-    }
+    SparseMatrix<int> extraE = this->pos_bm1.transpose() * v;
+    // for (int i = 0; i < extraE.size(); ++i)
+    // {
+    //     if (extraE[i])
+    //     {
+    //         newSet.addEdge(i);
+    //     }
+    // }
+    newSet.addEdges(nonzeros(extraE));
+    SparseMatrix<int> extraF = this->pos_bm2.transpose() * e + fv * v;
+    // for (int i = 0; i < extraF.size(); ++i)
+    // {
+    //     if (extraF[i])
+    //     {
+    //         newSet.addFace(i);
+    //     }
+    // }
+    newSet.addFaces(nonzeros(extraF));
     std::cout<<"extraF:"<<extraF<<std::endl;
     return newSet;
 }
 SimplicialSet TriangleMesh::closure(const SimplicialSet& subset) const{
     SimplicialSet newSet = subset.deepCopy();
-    VectorXi f = this->faces_to_vector(subset);
-    VectorXi extraE = this->pos_bm2 * f;
-    for (int i = 0; i < extraE.size(); ++i)
-    {
-        if (extraE[i])
-        {
-            newSet.addEdge(i);
-        }
-    }
-    VectorXi e = this->edges_to_vector(newSet);
-    VectorXi extraV = this->pos_bm1 * e;
-    for (int i = 0; i < extraV.size(); ++i)
-    {
-        if (extraV[i])
-        {
-            newSet.addVertex(i);
-        }
-    }
+    SparseMatrix<int> f = this->faces_to_vector(subset);
+    SparseMatrix<int> extraE = this->pos_bm2 * f;
+    // for (int i = 0; i < extraE.size(); ++i)
+    // {
+    //     if (extraE[i])
+    //     {
+    //         newSet.addEdge(i);
+    //     }
+    // }
+    newSet.addEdges(nonzeros(extraE));
+    SparseMatrix<int> e = this->edges_to_vector(newSet);
+    SparseMatrix<int> extraV = this->pos_bm1 * e;
+    // for (int i = 0; i < extraV.size(); ++i)
+    // {
+    //     if (extraV[i])
+    //     {
+    //         newSet.addVertex(i);
+    //     }
+    // }
+    newSet.addVertices(nonzeros(extraV));
     return newSet;
 }
 SimplicialSet TriangleMesh::link(const SimplicialSet& subset) const{
@@ -830,4 +856,5 @@ std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > TriangleMesh::Bo
 std::tuple<Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> > TriangleMesh::UnsignedBoundaryMatrices() const{
     return std::tuple< Eigen::SparseMatrix<int>, Eigen::SparseMatrix<int> >(this->pos_bm1, this->pos_bm2);
 }
+
     
