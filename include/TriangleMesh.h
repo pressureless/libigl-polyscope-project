@@ -96,6 +96,8 @@ public:
     void init_mesh_indices();
     std::set<int> nonzeros(Eigen::SparseMatrix<int> &target)const;
     std::set<int> nonzeros(Eigen::SparseMatrix<int> &target, bool is_row)const;
+    std::set<int> ValueSet(Eigen::SparseMatrix<int> &target, int value)const;
+    std::set<int> ValueSet(Eigen::SparseMatrix<int> &target, int value, bool is_row)const;
 // private:
     int num_v;
     Eigen::MatrixXd V;

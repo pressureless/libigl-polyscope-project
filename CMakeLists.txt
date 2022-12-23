@@ -85,6 +85,7 @@ set(SRCS
   src/main.cpp
   src/TriangleMesh.cpp
   src/dec_util.cpp
+  src/MeshHelper.cpp
 )
 
 add_executable(main "${SRCS}")

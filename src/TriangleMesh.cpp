@@ -93,6 +93,28 @@ std::set<int> TriangleMesh::nonzeros(Eigen::SparseMatrix<int> & target, bool is_
     } 
     return result;
 }
+std::set<int> TriangleMesh::ValueSet(Eigen::SparseMatrix<int> &target, int value)const{
+    // return row indices for specific value
+    return ValueSet(target, value, true);
+}
+std::set<int> TriangleMesh::ValueSet(Eigen::SparseMatrix<int> &target, int value, bool is_row)const{
+    std::set<int> result;
+    for (int k=0; k<target.outerSize(); ++k){
+      for (SparseMatrix<int>::InnerIterator it(target,k); it; ++it) {
+        if (it.value() == value)
+        {
+            if (is_row)
+            {
+                result.insert(it.row());
+            }
+            else{
+                result.insert(it.col());
+            }
+        }
+      }
+    } 
+    return result;
+}
 
 int TriangleMesh::n_edges() const{
     return this->E.rows();
