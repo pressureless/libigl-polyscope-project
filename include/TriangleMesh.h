@@ -100,6 +100,7 @@ public:
     std::set<int> ValueSet(Eigen::SparseMatrix<int> &target, int value, bool is_row)const;
 // private:
     int num_v;
+    bool numerical_order;       // whether the indices are stored as numerical order in edges/faces
     Eigen::MatrixXd V;
     Matrix T;
     Matrix E;

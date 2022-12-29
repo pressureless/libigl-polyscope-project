@@ -30,15 +30,17 @@ void TriangleMesh::initialize(const Eigen::MatrixXd &V, const Matrix &T){
 }
 void TriangleMesh::initialize(const Eigen::MatrixXd &V, Matrix &T){
     std::cout<<"T cols:"<<T.cols()<<std::endl;
+    this->numerical_order = true;
     this->T = T;
-    // std::cout<<"T:\n"<<this->T<<std::endl;
+    std::cout<<"T:\n"<<this->T<<std::endl;
     if (T.cols() == 4) {
         // tets, assume each row (tet) already has the positive orientation
         this->T = T;
         Vector maxVal = T.rowwise().maxCoeff();
         this->num_v = maxVal.maxCoeff()+1;
-        this->create_edges();
+        // this->create_edges();
         this->create_faces();
+        this->create_edges_from_faces();
         //
         this->build_boundary_mat1();
         this->build_boundary_mat2();
@@ -200,12 +202,23 @@ void TriangleMesh::create_edges(){
 void TriangleMesh::create_edges_from_faces(){
     Matrix E(3*this->F.rows(), 2);
     for (int i=0; i<this->F.rows(); i++) {
-        Vector v0(2); v0 << this->F(i,0), this->F(i,1);
-        E.row(3*i) = sort_vector(v0);
-        Vector v1(2); v1 << this->F(i,0), this->F(i,2);
-        E.row(3*i+1) = sort_vector(v1);
-        Vector v2(2); v2 << this->F(i,1), this->F(i,2);
-        E.row(3*i+2) = sort_vector(v2); 
+        if (this->numerical_order)
+        {
+            Vector v0(2); v0 << this->F(i,0), this->F(i,1);
+            E.row(3*i) = sort_vector(v0);
+            Vector v1(2); v1 << this->F(i,0), this->F(i,2);
+            E.row(3*i+1) = sort_vector(v1);
+            Vector v2(2); v2 << this->F(i,1), this->F(i,2);
+            E.row(3*i+2) = sort_vector(v2); 
+        }
+        else{
+            RowVector v0(2); v0 << this->F(i,0), this->F(i,1);
+            E.row(3*i) = v0;
+            RowVector v1(2); v1 << this->F(i,2), this->F(i,0);
+            E.row(3*i+1) = v1;
+            RowVector v2(2); v2 << this->F(i,1), this->F(i,2);
+            E.row(3*i+2) = v2; 
+        }
     }
     // std::cout<<"before this->E:\n"<<E<<std::endl;
     this->E = remove_duplicate_rows(sort_matrix(E));    
@@ -218,16 +231,31 @@ void TriangleMesh::create_edges_from_faces(){
 
 
 void TriangleMesh::create_faces(){
+    // create face from tetrahedra, assume the tetrahedra orientation is positive
     Matrix F(4*T.rows(), 3);
     for (int i=0; i<this->T.rows(); i++) {
-        Vector v0(3); v0 << this->T(i,0), this->T(i,1), this->T(i,2);
-        F.row(4*i) = sort_vector(v0);
-        Vector v1(3); v1 << this->T(i,0), this->T(i,1), this->T(i,3);
-        F.row(4*i+1) = sort_vector(v1);
-        Vector v2(3); v2 << this->T(i,0), this->T(i,2), this->T(i,3);
-        F.row(4*i+2) = sort_vector(v2);
-        Vector v3(3); v3 << this->T(i,1), this->T(i,2), this->T(i,3);
-        F.row(4*i+3) = sort_vector(v3);
+        if (this->numerical_order)
+        {
+            Vector v0(3); v0 << this->T(i,0), this->T(i,1), this->T(i,2);
+            F.row(4*i) = sort_vector(v0);
+            Vector v1(3); v1 << this->T(i,0), this->T(i,1), this->T(i,3);
+            F.row(4*i+1) = sort_vector(v1);
+            Vector v2(3); v2 << this->T(i,0), this->T(i,2), this->T(i,3);
+            F.row(4*i+2) = sort_vector(v2);
+            Vector v3(3); v3 << this->T(i,1), this->T(i,2), this->T(i,3);
+            F.row(4*i+3) = sort_vector(v3);
+        }
+        else{
+            // positive
+            RowVector v0(3); v0 << this->T(i,0), this->T(i,2), this->T(i,1);
+            F.row(4*i) = permute_rvector(v0);
+            RowVector v1(3); v1 << this->T(i,0), this->T(i,1), this->T(i,3);
+            F.row(4*i+1) = permute_rvector(v1);
+            RowVector v2(3); v2 << this->T(i,0), this->T(i,3), this->T(i,2);
+            F.row(4*i+2) = permute_rvector(v2);
+            RowVector v3(3); v3 << this->T(i,1), this->T(i,2), this->T(i,3);
+            F.row(4*i+3) = permute_rvector(v3);
+        }
     }
     this->F = remove_duplicate_rows(sort_matrix(F));
     std::cout<<"this->F:\n"<<this->F<<std::endl;
@@ -287,7 +315,7 @@ void TriangleMesh::build_boundary_mat2(){
     }
     this->bm2.setFromTriplets(tripletList.begin(), tripletList.end());
     this->pos_bm2 = this->bm2.cwiseAbs();
-    // std::cout<<"this->bm2:\n"<<this->bm2<<std::endl;
+    std::cout<<"this->bm2:\n"<<this->bm2<<std::endl;
     // std::cout<<"this->pos_bm2:\n"<<this->pos_bm2<<std::endl;
 }
 
@@ -300,7 +328,7 @@ void TriangleMesh::build_boundary_mat1(){
     }
     this->bm1.setFromTriplets(tripletList.begin(), tripletList.end());
     this->pos_bm1 = this->bm1.cwiseAbs();
-    // std::cout<<"this->bm1:\n"<<this->bm1<<std::endl;
+    std::cout<<"this->bm1:\n"<<this->bm1<<std::endl;
     // std::cout<<"this->pos_bm1:\n"<<this->pos_bm1<<std::endl;
 }
 
